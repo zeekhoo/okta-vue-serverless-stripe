@@ -1,4 +1,21 @@
-# vue-bod
+# vue-mlm
+
+## Config file
+Add a config file named .config.js under /src
+```
+export default {
+	udp_api: "api.udp-okta.io",
+	oidc: {
+		issuer: "https://{{subdomain.prodOrPreview}}}.com/oauth2/default",
+		client_id: "{{client_id}}}",
+		redirect_uri: "http://localhost:8080/implicit/callback",
+		scope: "openid profile email"
+	},	
+	social: {
+		fb: "{{facebook IdP Id}}}"
+	}
+}
+```
 
 ## Project setup
 ```
