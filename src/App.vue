@@ -1,31 +1,119 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
-  </div>
+  <v-app ref="myApp">
+    <v-toolbar app>
+      <v-toolbar-title 
+        class="headline text-uppercase" 
+      >
+        <span>NitroBurn </span>
+        <span class="font-weight-light">Extreme Workouts Online</span>
+      </v-toolbar-title>
+
+      <v-spacer></v-spacer>
+
+      <router-link
+        to="/"
+        class="item"
+      >
+        <v-btn flat>Home</v-btn>
+      </router-link>
+      
+      <router-link
+        to="/login"
+        class="item"
+        v-if="!loggedIn"
+      >
+        <v-btn flat>Login</v-btn>
+      </router-link>
+
+      <router-link
+        to="/"
+        id="logout-button"
+        class="item"
+        v-if="loggedIn"
+        v-on:click.native="logout()"
+      >
+        <v-btn flat>Logout</v-btn>
+      </router-link>
+
+      <v-btn
+        flat
+        @click="getBlogUrl()"
+        target="_blank"
+      >
+      Blog
+      </v-btn>
+
+      <v-btn
+        to='/help'
+        flat
+      >
+        <span class="mr-2">Help</span>
+      </v-btn>
+
+    </v-toolbar>
+
+    <v-content>
+      <router-view/>
+    </v-content>
+  </v-app>
 </template>
 
-<style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-#nav {
-  padding: 30px;
-}
+<script>
+import atob from 'atob'
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
+export default {
+  name: 'app',
+  data: function () {
+    return { 
+      authenticated: false,
+      loggedIn: false,
+      cardOnFile: false,
+      blogUrl: "http://bodblog.unidemo.online.s3-website-us-west-2.amazonaws.com"
+    }
+  },
+  created () { this.isAuthenticated() },
+  watch: {
+    // Everytime the route changes, check for auth status
+    '$route': 'isAuthenticated'
+  },
+  methods: {
+    getBlogUrl() {
+      var newTab = this.blogUrl
+      if (this.authenticated) {
+        newTab = this.blogUrl + '/login'
+      }
+      window.open(newTab, '_blank')
+    },
+    async isAuthenticated () {
+      if (this.$auth) {
+        this.authenticated = await this.$auth.isAuthenticated()
+        if (this.authenticated) {
+          const token = await this.$auth.getIdToken()
+          if (token) {
+            const payload = JSON.parse(atob(token.split('.')[1]))
+            if (payload.groups.includes('ProspectSocial')) {
+              this.loggedIn = true
+            }
+            if (payload.groups.includes('Customer')) {
+              this.loggedIn = true
+              this.cardOnFile = true
+            }
+          }
 
-#nav a.router-link-exact-active {
-  color: #42b983;
+        } else {
+          this.loggedIn = false
+          this.cardOnFile = false
+        }
+      } else {
+        this.authenticated = false
+        this.loggedIn = false
+        this.cardOnFile = false
+      }
+    },
+    async logout () {
+      await this.$auth.logout()
+      await this.isAuthenticated()
+    }
+  }
 }
-</style>
+</script>
