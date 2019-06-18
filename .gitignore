@@ -1,10 +1,14 @@
 .DS_Store
 node_modules
 /dist
+backend/unidemo-bod-register/dist/
+backend/unidemo-bod-signup/dist/
 
 # local env files
 *.local
 .config.js
+*.env
+
 
 # Log files
 npm-debug.log*
@@ -19,3 +23,4 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+

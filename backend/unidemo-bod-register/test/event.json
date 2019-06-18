@@ -1,0 +1,13 @@
+{
+    "body": "{\"username\": \"pammy.landy@unidemo.com\", \"firstName\": \"Pamela\", \"lastName\": \"Landy\", \"password\": \"Okta123!\", \"goals\": \"Get fit\", \"zip\": \"94107\"}",
+    "pathParameters": {
+      "userId": "00ulef3qcmp8TVbc70h7"
+    },
+    "requestContext": {
+        "authorizer": {
+            "ssws": "\"paste key here\"",
+            "oktaOrg": "\"beachbodyciam.oktapreview.com\""
+        }
+    }  
+  }
+  

@@ -1,0 +1,24 @@
+{
+  "name": "unidemo-bod-register",
+  "version": "1.0.0",
+  "description": "Lambda function for progressive profiling \"Register\" stage",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/lambda-local --timeout 300 -l index.js -h handler -e test/event.json",
+    "zip": "mkdir dist && rm -f dist/unidemo-bod-register.zip ; zip dist/unidemo-bod-register.zip -r *.js *.json node_modules/"
+  },
+  "author": "zeekhoo-okta",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "envfile": "^3.0.0"
+  },
+  "devDependencies": {
+    "lambda-local": "^1.1.0",
+    "grunt": "^1.0.1",
+    "grunt-aws": "^0.6.1",
+    "grunt-aws-lambda": "^0.13.0",
+    "grunt-env": "^0.4.4",
+    "load-grunt-tasks": "^3.4.0"
+  }
+}
