@@ -4,6 +4,8 @@ node_modules
 backend/unidemo-bod-register/dist/
 backend/unidemo-bod-signup/dist/
 
+package-lock.json
+
 # local env files
 *.local
 .config.js

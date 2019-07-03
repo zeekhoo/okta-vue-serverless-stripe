@@ -1,15 +1,14 @@
 "use strict"
 
-const envfile = require('envfile');
 const axios = require('axios');
-const configsBaseUrl = 'https://safe-escarpment-74832.herokuapp.com';
+const udpBaseUrl = process.env.UDP_BASE_URL;
 
 exports.handler = function(event, context, callback) {
     var subdomain = event.headers.origin;
     subdomain = subdomain.replace('https://', '').replace('http://', '').split('.')[0];
     console.log('subdomain: ' + subdomain);
 
-    getSSWSPromise(subdomain, 'bod')
+    getSSWSPromise(subdomain)
     .then((ssws) => {
         const requestHeaders = {
             'Accept': 'application/json',
@@ -22,15 +21,16 @@ exports.handler = function(event, context, callback) {
         const groupid = eventBody.groupId;
         const baseUrl = eventBody.baseUrl;
 
-        const user = {
-            profile: {
+        var input_profile = {
                 login: eventBody.username,
                 email: eventBody.username,
                 firstName: eventBody.firstName,
                 lastName: eventBody.lastName,
                 goals: eventBody.goals,
                 zipCode: eventBody.zip
-            },
+            };
+        const user = {
+            profile: input_profile,
             credentials: {
                 password: {value: eventBody.password}
             }
@@ -74,16 +74,21 @@ exports.handler = function(event, context, callback) {
 };
 
 
-function getSSWSPromise(subdomain, app) {
+function getSSWSPromise(subdomain) {
     return new Promise((resolve, reject) => {
+        const requestHeaders = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + process.env.UDP_KEY
+        }
         axios({
             method: 'GET',
-            url: configsBaseUrl + '/api/configs/' + subdomain + '/' + app + '/secret',
+            url: udpBaseUrl + '/api/subdomains/' + subdomain,
+            headers: requestHeaders
         })
         .then((res) => {
             if (res.data) {
-                const obj = envfile.parseSync(res.data);
-                resolve(obj.OKTA_API_TOKEN || '');
+                resolve(res.data.okta_api_token || '');
             }
         })
         .then((err) => {

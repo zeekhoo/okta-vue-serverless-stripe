@@ -23,7 +23,6 @@ Vue.use(Router)
 
 const router = new Router({
   mode: 'history',
-  base: process.env.BASE_URL,
   routes: [
     {
       path: '/',
@@ -63,15 +62,14 @@ const onAuthRequired = async (from, to, next) => {
     initAuth = false
     if (!isRunningLocal) {
       const data = await WellKnownConfigs.getWellKnownConfigs(subdomain)
-      oktaAuthConfig.oidc.issuer=data.issuer
       oktaAuthConfig.base_url=data.base_url
+      oktaAuthConfig.oidc.issuer=data.issuer
       oktaAuthConfig.oidc.client_id=data.client_id
       oktaAuthConfig.oidc.redirect_uri=data.redirect_uri
       oktaAuthConfig.social.fb=data.fbId
       oktaAuthConfig.prospect_group_id=data.prospect_group_id
       oktaAuthConfig.customer_group_id=data.customer_group_id
     }
-    console.log('process.env.baseUrl: ' + process.env.baseUrl)
     Vue.use(Auth, {
       issuer: oktaAuthConfig.oidc.issuer,
       client_id: oktaAuthConfig.oidc.client_id,

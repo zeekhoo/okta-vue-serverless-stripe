@@ -1,27 +1,26 @@
 "use strict"
 
-const envfile = require('envfile');
 const axios = require('axios');
-const configsBaseUrl = 'https://safe-escarpment-74832.herokuapp.com';
+const udpBaseUrl = process.env.UDP_BASE_URL;
 
 exports.handler = function(event, context, callback) {
     var subdomain = event.headers.origin;
     subdomain = subdomain.replace('https://', '').replace('http://', '').split('.')[0]
     console.log('Subdomain: ' + subdomain);
 
-    getSSWSPromise(subdomain, 'bod')
+    getSSWSPromise(subdomain)
     .then((res) => {
         const ssws = res;
        
         const eventBody = JSON.parse(event.body);
         const oktaBaseUrl = eventBody.baseUrl;
     
-        const pw = "Prospect123456789#";
+        const pw = "Atko123456789#";
         const un = eventBody.username;
         const name = eventBody.name || '';
         const groupid = eventBody.groupId || '';
         const fn = name.split(' ')[0];
-        const ln = name.split(' ')[1] || '';
+        const ln = name.split(' ')[1] || '!';
     
         const user = {
             profile: {
@@ -71,16 +70,21 @@ exports.handler = function(event, context, callback) {
     });
 };
 
-function getSSWSPromise(subdomain, app) {
+function getSSWSPromise(subdomain) {
     return new Promise((resolve, reject) => {
+        const requestHeaders = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + process.env.UDP_KEY
+        }
         axios({
             method: 'GET',
-            url: configsBaseUrl + '/api/configs/' + subdomain + '/' + app + '/secret',
+            url: udpBaseUrl + '/api/subdomains/' + subdomain,
+            headers: requestHeaders
         })
         .then((res) => {
             if (res.data) {
-                const obj = envfile.parseSync(res.data);
-                resolve(obj.OKTA_API_TOKEN || '');
+                resolve(res.data.okta_api_token || '');
             }
         })
         .then((err) => {

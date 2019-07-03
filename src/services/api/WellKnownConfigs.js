@@ -18,13 +18,13 @@ export default {
 			};
 			const data = res.data;
 			if (Object.keys(data).length > 0) {
-				result.issuer=data.config.issuer || '';
-				result.base_url=data.config.base_url || '';
-				result.client_id=data.config.client_id || '';
-				result.redirect_uri=data.config.redirect_uri || '';
-				result.fbId=data.config.settings.fbId || '';
-				result.prospect_group_id=data.config.settings.prospect_group_id || '';
-				result.customer_group_id=data.config.settings.customer_group_id || '';
+				result.issuer=data.issuer || '';
+				result.base_url=data.okta_org_name || '';
+				result.client_id=data.client_id || '';
+				result.redirect_uri=data.redirect_uri || '';
+				result.fbId=data.settings.fbId || '';
+				result.prospect_group_id=data.settings.prospect_group_id || '';
+				result.customer_group_id=data.settings.customer_group_id || '';
 			}
 			return result;
 		});

@@ -23,16 +23,6 @@
                         </v-list>
                     </v-layout>
                 </v-flex>
-                <v-flex md6>
-                    <v-layout column>
-                        <h3>2. Save config in UDP</h3>
-                        <h4>POST https://safe-escarpment-74832.herokuapp.com</h4><br>
-                        <v-card>
-                            <pre>(Sample)<br>{{sample}}</pre>
-                        </v-card>
-                    </v-layout>
-
-                </v-flex>
             </v-layout>
 
         </v-container>
@@ -71,27 +61,14 @@ export default {
                     "steps": "Create an API Token with full admin rights"
                 },
                 {
-                    "label": "(Optional)",
+                    "label": "Facebook Integration",
                     "steps": "Setup a Facebook integration"
+                },
+                {
+                    "label": "Update the config file",
+                    "steps": 'Update the src/.config.js file'
                 }
-            ],
-            sample: {
-                "udp_subdomain": "awesome",
-                "demo_app_name": "bod",
-                "okta_api_token": "xxxxifsdfsieiefio938r9r090k2",
-                "client_id": "0oa4ox4jzjHj9vWgR1t7",
-                "client_secret": "",
-                "user_id": "zeekhoo",
-                "issuer": "https://dev-12345.oktapreview.com/oauth2/default",
-                "base_url": "https://dev-12345.oktapreview.com",
-                "redirect_uri": "https://awesome.bod.unidemo.online/implicit/callback",
-                "status": "ready",
-                "settings": {
-                    "fbId": "0oaxmxaszOUXlhDAu1t6",
-                    "prospect_group_id": "00gay1vy250I1hbuU1t7",
-                    "customer_group_id": "00gay1wamePMm98QJ1t7"
-                }
-            }
+            ]
         }
     },
     methods: {

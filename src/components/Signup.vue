@@ -98,7 +98,7 @@ export default {
           }
           axios({
             method: 'post',
-            url: 'https://qdqj7xgwd9.execute-api.us-west-2.amazonaws.com/dev/unidemo/public/bod/signup',
+            url: 'https://' + oktaAuthConfig.bod_api + '/dev/unidemo/public/bod/signup',
             data: authnBody
           })
           .then(

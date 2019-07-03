@@ -202,7 +202,7 @@ export default {
 
                 axios({
                     method: 'post',
-                    url: 'https://qdqj7xgwd9.execute-api.us-west-2.amazonaws.com/dev/unidemo/public/bod/register/' + this.user.sub,
+                    url: 'https://' + oktaAuthConfig.bod_api + '/dev/unidemo/public/bod/register/' + this.user.sub,
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
@@ -216,7 +216,6 @@ export default {
                         referrerPath = window.location.pathname
                         localStorage.setItem('referrerPath', window.location.pathname)
                     }
-                    // this.$auth.loginRedirect(referrerPath, {})
                     var scp = oktaAuthConfig.oidc.scope.split(' ')
                     scp.push('customer')
 
@@ -231,7 +230,6 @@ export default {
     async created () {
         this.accessToken = await this.$auth.getAccessToken()
         this.user = await this.$auth.getUser()
-        // console.log(this.user)
         this.email = this.user.email
         this.firstName = this.user.given_name,
         this.lastName = this.user.family_name

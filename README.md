@@ -1,19 +1,20 @@
 # vue-mlm
 
 ## Config file
-Add a config file named .config.js under /src
+Create `src/.config.js` and fill in the values below:
 ```
 export default {
-	udp_api: "api.udp-okta.io",
 	oidc: {
-		issuer: "https://{{subdomain.prodOrPreview}}}.com/oauth2/default",
+		issuer: "https://{{subdomain.okta-or-oktapreview}}}.com/oauth2/default",
 		client_id: "{{client_id}}}",
 		redirect_uri: "http://localhost:8080/implicit/callback",
 		scope: "openid profile email"
 	},	
 	social: {
 		fb: "{{facebook IdP Id}}}"
-	}
+	},
+	prospect_group_id: '{id of the "Prospect" group id}',
+	customer_group_id: '{id of the "Customer" group id}'
 }
 ```
 
@@ -26,21 +27,3 @@ npm install
 ```
 npm run serve
 ```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Run your tests
-```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
