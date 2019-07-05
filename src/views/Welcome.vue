@@ -1,7 +1,7 @@
 <style scoped>
 .signup {
-  background-image: url('https://img1.beachbodyimages.com/beachbody/image/upload/ola/BBPP-2198/Girl_TShirt-n.jpg');
-  background-position: 500px
+  background-image: url('/img/bod-welcome.png');
+  background-position: 370px 0px;
 }
 </style>
 
