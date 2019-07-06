@@ -61,15 +61,21 @@ const onAuthRequired = async (from, to, next) => {
   if (initAuth) {
     initAuth = false
     if (!isRunningLocal) {
+      oktaAuthConfig.isRunningLocal = false
+
       const data = await WellKnownConfigs.getWellKnownConfigs(subdomain)
-      oktaAuthConfig.base_url=data.base_url
+      oktaAuthConfig.base_url=data.okta_org_name
       oktaAuthConfig.oidc.issuer=data.issuer
       oktaAuthConfig.oidc.client_id=data.client_id
       oktaAuthConfig.oidc.redirect_uri=data.redirect_uri
       oktaAuthConfig.social.fb=data.fbId
       oktaAuthConfig.prospect_group_id=data.prospect_group_id
       oktaAuthConfig.customer_group_id=data.customer_group_id
+    } 
+    else {
+      oktaAuthConfig.isRunningLocal = true
     }
+
     Vue.use(Auth, {
       issuer: oktaAuthConfig.oidc.issuer,
       client_id: oktaAuthConfig.oidc.client_id,

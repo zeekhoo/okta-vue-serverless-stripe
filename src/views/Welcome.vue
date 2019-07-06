@@ -1,6 +1,6 @@
 <style scoped>
 .signup {
-  background-image: url('/img/bod-welcome.png');
+  background-image: url('../assets/img/bod-welcome.png');
   background-position: 370px 0px;
 }
 </style>

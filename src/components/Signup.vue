@@ -19,31 +19,40 @@
                   :rules="nameRules"
                   label="Name"
                   required
+                  :disabled="signingUp"
               ></v-text-field>
               <v-text-field
                   v-model="email"
                   :rules="emailRules"
                   label="E-mail"
                   required
+                  :disabled="signingUp"
               ></v-text-field>
               <v-checkbox
                   v-model="checkbox"
                   :rules="[v => !!v || 'You must agree to continue!']"
                   label="You acknowledge you have read, understand and agree to the NITROBURN Terms and Conditions and Privacy Policy"
                   required
+                  :disabled="signingUp"
               ></v-checkbox>
               <v-btn
-                  :disabled="!valid"
+                  :disabled="!valid || signingUp"
                   color="orange"
                   @click="signup()"
               >
-                  Get Started
+                Get Started
               </v-btn>
+              <v-progress-circular
+                v-if="signingUp"
+                indeterminate
+                color="orange" size="16"
+              />
               <div>
               <v-btn
                   class="social-fb"
                   color="blue" dark
                   @click="signinWithFb()"
+                  :disabled="signingUp"
               >
                   &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Signin With Facebook
               </v-btn>
@@ -66,6 +75,7 @@ export default {
   name: 'signup',
   data: () => ({
     valid: true,
+    signingUp: false,
     name: '',
     nameRules: [
       v => !!v || 'Name is required',
@@ -86,15 +96,15 @@ export default {
     },
     signup() {
       if (this.$refs.form.validate()) {
-        this.snackbar = true
-
+        this.signingUp = true
         if (this.email && this.name) {
           //add user
           const authnBody = {
               name: this.name,
-              username: this.email,
-              groupId: oktaAuthConfig.prospect_group_id,
-              baseUrl: oktaAuthConfig.base_url
+              username: this.email
+          }
+          if (oktaAuthConfig.isRunningLocal) {
+            authnBody.mocksubdomain = oktaAuthConfig.mock_subdomain
           }
           axios({
             method: 'post',

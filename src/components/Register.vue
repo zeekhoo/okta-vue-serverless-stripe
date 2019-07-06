@@ -22,6 +22,7 @@
                         :rules="nameRules"
                         label="First Name"
                         required
+                        :disabled="registering"
                         ></v-text-field>
 
                         <v-text-field
@@ -30,6 +31,7 @@
                         :rules="nameRules"
                         label="Last Name"
                         required
+                        :disabled="registering"
                         ></v-text-field>
 
                         <v-text-field
@@ -37,6 +39,7 @@
                         :rules="emailRules"
                         label="E-mail"
                         required
+                        :disabled="registering"
                         ></v-text-field>
 
                         <v-text-field
@@ -48,6 +51,7 @@
                             label="Password"
                             hint="At least 8 characters"
                             counter
+                            :disabled="registering"
                             @click:append="showPassword = !showPassword"
                         ></v-text-field>
 
@@ -57,6 +61,7 @@
                         :rules="[v => !!v || 'Please select a goal']"
                         label="What are your goals?"
                         required
+                        :disabled="registering"
                         ></v-select>
 
                         <h3>Please check below to agree:</h3>
@@ -65,6 +70,7 @@
                         :rules="[v => !!v || 'You must agree to continue!']"
                         label="Your credit card will be automatically billed. You can cancel at any time by calling 1(800)123-4567 or visiting www.nitroburn.com"
                         required
+                        :disabled="registering"
                         ></v-checkbox>
 
                         <v-checkbox
@@ -72,6 +78,7 @@
                         :rules="[v => !!v || 'You must agree to continue!']"
                         label="You acknowledge you have read, understand, and agree to the Nitroburn Terms and Conditions and Privacy Policy"
                         required
+                        :disabled="registering"
                         ></v-checkbox>
                     </v-flex>
                     <v-divider vertical/>
@@ -82,6 +89,7 @@
                         :rules="[v => !!v || 'Please enter card number']"
                         label="Card Number"
                         required
+                        :disabled="registering"
                         ></v-text-field>
 
                         <v-text-field
@@ -89,6 +97,7 @@
                         :rules="expRules"
                         label="Expiration (MM-YYYY)"
                         required
+                        :disabled="registering"
                         ></v-text-field>
 
                         <v-text-field
@@ -96,6 +105,7 @@
                         :rules="[v => !!v || 'Enter the card CVV']"
                         label="CVV"
                         required
+                        :disabled="registering"
                         ></v-text-field>
 
                         <v-text-field
@@ -103,6 +113,7 @@
                         :rules="[v => !!v || 'Enter the card billing zip code']"
                         label="Billing Zip Code"
                         required
+                        :disabled="registering"
                         ></v-text-field>                        
                     </v-flex>
                 </v-layout>
@@ -113,8 +124,16 @@
                 color="blue"
                 @click="upgrade()"
                 >
+                <div v-if="!registering">
                 Do it
+                </div>
+                <v-progress-circular
+                v-if="registering"
+                indeterminate
+                color="primary"
+                />
             </v-btn>
+
         </v-layout>
     </v-container>
 </template>
@@ -128,6 +147,7 @@ import oktaAuthConfig from '@/.config.js'
 export default {
     name: 'register',
     data: () => ({
+        registering: false,
         accessToken: false,
         user: false,
         valid: true,
@@ -177,7 +197,7 @@ export default {
     }),
     mounted: function () {
         this.authClient = new OktaAuth({
-            url: oktaAuthConfig.base_url,
+            url: oktaAuthConfig.base_url || oktaAuthConfig.oidc.issuer.split('oauth2')[0],
             issuer: oktaAuthConfig.oidc.issuer,
             clientId: oktaAuthConfig.oidc.client_id,
             redirectUri: oktaAuthConfig.oidc.redirect_uri
@@ -187,7 +207,7 @@ export default {
     methods: {
         upgrade () {
             if (this.$refs.form.validate()) {
-                this.snackbar = true
+                this.registering = true
 
                 const body = {
                     username: this.email,
@@ -195,9 +215,10 @@ export default {
                     lastName: this.lastName,
                     password: this.password,
                     goals: this.goals,
-                    zip: this.zip,
-                    groupId: oktaAuthConfig.customer_group_id,
-                    baseUrl: oktaAuthConfig.base_url
+                    zip: this.zip
+                }
+                if (oktaAuthConfig.isRunningLocal) {
+                    body.mocksubdomain = oktaAuthConfig.mock_subdomain
                 }
 
                 axios({
@@ -231,8 +252,11 @@ export default {
         this.accessToken = await this.$auth.getAccessToken()
         this.user = await this.$auth.getUser()
         this.email = this.user.email
-        this.firstName = this.user.given_name,
-        this.lastName = this.user.family_name
+        this.firstName = this.user.given_name
+        if (this.user.family_name) {
+            if (this.user.family_name != '!') 
+                this.lastName = this.user.family_name
+        }
     }
 }
 </script>

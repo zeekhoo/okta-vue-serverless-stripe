@@ -3,76 +3,68 @@
 const axios = require('axios');
 const udpBaseUrl = process.env.UDP_BASE_URL;
 
-exports.handler = function(event, context, callback) {
+exports.handler = async function(event, context, callback) {
     var subdomain = event.headers.origin;
     subdomain = subdomain.replace('https://', '').replace('http://', '').split('.')[0];
     console.log('subdomain: ' + subdomain);
 
-    getSSWSPromise(subdomain)
-    .then((ssws) => {
-        const requestHeaders = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': 'SSWS ' + ssws
-        }
-        const eventBody = JSON.parse(event.body);
-
-        const userId = event.pathParameters.userId;
-        const groupid = eventBody.groupId;
-        const baseUrl = eventBody.baseUrl;
-
-        var input_profile = {
-                login: eventBody.username,
-                email: eventBody.username,
-                firstName: eventBody.firstName,
-                lastName: eventBody.lastName,
-                goals: eventBody.goals,
-                zipCode: eventBody.zip
-            };
-        const user = {
-            profile: input_profile,
-            credentials: {
-                password: {value: eventBody.password}
-            }
-        };
+    const eventBody = JSON.parse(event.body);
+    if (eventBody.mocksubdomain) {
+        subdomain = eventBody.mocksubdomain;
         
-        axios({
-            method: 'POST',
-            headers: requestHeaders,
-            url: baseUrl + '/api/v1/users/' + userId,
-            data: user
-        })
-        .then((res) => {
-            console.log(res.data);
-            
-            axios({
-                method: 'PUT',
-                headers: requestHeaders,
-                url: baseUrl + '/api/v1/groups/' + groupid + '/users/' + userId
-              })
-              .then((res) => {
-                  console.log(res.data);
-    
-                  const response = {
-                      statusCode: 200,
-                      body: "ok",
-                      isBase64Encoded: false,
-                      headers: {
-                        "Access-Control-Allow-Origin": "*"
-                      }
-                  };
-                  callback(null, response);
-              })
-              .catch((err)=> {
-                  console.log(err);
-              });
-        })
-        .catch((err) => {
-            console.log(err);
-        })        
-    });
-};
+    }
+    console.log('Subdomain: ' + subdomain);
+    const subdomainConfig = await getSSWSPromise(subdomain);
+    const requestHeaders = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'SSWS ' + subdomainConfig.ssws
+    }
+    const baseUrl = subdomainConfig.org;
 
+    const userId = event.pathParameters.userId;
+    
+    const configRes = await axios.get(udpBaseUrl + '/api/configs/' + subdomain + '/bod');
+    const groupid = configRes.data.settings.customer_group_id || '';
+
+    const user = {
+        profile: {
+            login: eventBody.username,
+            email: eventBody.username,
+            firstName: eventBody.firstName,
+            lastName: eventBody.lastName,
+            goals: eventBody.goals,
+            zipCode: eventBody.zip
+        },
+        credentials: {
+            password: {value: eventBody.password}
+        }
+    };
+    
+    const usersRes = await axios({
+        method: 'POST',
+        headers: requestHeaders,
+        url: baseUrl + '/api/v1/users/' + userId,
+        data: user
+    })
+    console.log(usersRes.data);
+        
+    const groupsRes = axios({
+        method: 'PUT',
+        headers: requestHeaders,
+        url: baseUrl + '/api/v1/groups/' + groupid + '/users/' + userId
+    })
+    console.log(groupsRes.data);
+    const response = {
+        statusCode: 200,
+        body: "ok",
+        isBase64Encoded: false,
+        headers: {
+        "Access-Control-Allow-Origin": "*"
+        }
+    };
+    callback(null, response);
+};
 
 function getSSWSPromise(subdomain) {
     return new Promise((resolve, reject) => {
@@ -88,7 +80,10 @@ function getSSWSPromise(subdomain) {
         })
         .then((res) => {
             if (res.data) {
-                resolve(res.data.okta_api_token || '');
+                resolve({
+                    ssws: res.data.okta_api_token || '',
+                    org: res.data.okta_org_name
+                });
             }
         })
         .then((err) => {

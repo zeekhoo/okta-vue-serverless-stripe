@@ -44,7 +44,7 @@
 
             <v-img
               v-on:click.native="preview()"
-              src="https://shawglobalnews.files.wordpress.com/2018/02/people-working-out.jpg?quality=70&strip=all&w=720&h=379&crop=1"
+              :src="image.people"
               height=550px
             >
               <v-container v-if="this.$parent.$parent.$parent.lead && !this.$parent.$parent.$parent.registered && !this.$parent.$parent.$parent.authenticated">
@@ -89,6 +89,7 @@
 <script>
 import atob from 'atob'
 import playButton from '@/assets/img/Play.png'
+// import imgPeople from '@/assets/img/people-working-out.jpg'
 import SignupComponent from '@/components/Signup.vue'
 import RegisterComponent from '@/components/Register.vue'
 
@@ -99,7 +100,10 @@ export default {
       user: false,
       payload: false,
       claims: [],
-      play: playButton,
+      image: {
+        people: require('@/assets/img/people-working-out.jpg'),
+        button: playButton,
+      },
       dialog: false,
       dialog2: false,
       sixMinuteAlert: false,
