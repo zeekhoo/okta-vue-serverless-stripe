@@ -114,20 +114,14 @@ export default {
           .then(
             (res) => {
               var referrerPath = "/"
-              if (window.location.pathname) {
-                referrerPath = window.location.pathname
-              }
-
-              this.$auth.loginRedirect(referrerPath, {
-                sessionToken: res.data.sessionToken
-              })
+              if (window.location.pathname) referrerPath = window.location.pathname
+              this.$auth.loginRedirect(referrerPath, {sessionToken: res.data.sessionToken})
             }
           )
         }
       }
     },
     signinWithFb() {
-      console.log('idp id: ' + oktaAuthConfig.social.fb)
       this.$auth.loginRedirect("/", {idp: oktaAuthConfig.social.fb})
     }  
   }

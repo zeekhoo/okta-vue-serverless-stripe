@@ -148,7 +148,6 @@ export default {
     name: 'register',
     data: () => ({
         registering: false,
-        accessToken: false,
         user: false,
         valid: true,
         firstName: '',
@@ -202,10 +201,9 @@ export default {
             clientId: oktaAuthConfig.oidc.client_id,
             redirectUri: oktaAuthConfig.oidc.redirect_uri
         })
-
     },
     methods: {
-        upgrade () {
+        async upgrade () {
             if (this.$refs.form.validate()) {
                 this.registering = true
 
@@ -217,17 +215,16 @@ export default {
                     goals: this.goals,
                     zip: this.zip
                 }
-                if (oktaAuthConfig.isRunningLocal) {
-                    body.mocksubdomain = oktaAuthConfig.mock_subdomain
-                }
+                if (oktaAuthConfig.isRunningLocal) body.mocksubdomain = oktaAuthConfig.mock_subdomain
 
+                const accessToken = await this.$auth.getAccessToken()
                 axios({
                     method: 'post',
                     url: 'https://' + oktaAuthConfig.bod_api + '/dev/unidemo/public/bod/register/' + this.user.sub,
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + this.accessToken
+                        'Authorization': 'Bearer ' + accessToken
                     },
                     data: body
                 })
@@ -249,14 +246,10 @@ export default {
         },
     },
     async created () {
-        this.accessToken = await this.$auth.getAccessToken()
         this.user = await this.$auth.getUser()
         this.email = this.user.email
         this.firstName = this.user.given_name
-        if (this.user.family_name) {
-            if (this.user.family_name != '!') 
-                this.lastName = this.user.family_name
-        }
+        if (this.user.family_name && this.user.family_name != '!') this.lastName = this.user.family_name
     }
 }
 </script>

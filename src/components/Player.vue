@@ -47,11 +47,11 @@
               :src="image.people"
               height=550px
             >
-              <v-container v-if="this.$parent.$parent.$parent.lead && !this.$parent.$parent.$parent.registered && !this.$parent.$parent.$parent.authenticated">
+              <!-- <v-container v-if="this.$parent.$parent.$parent.lead && !this.$parent.$parent.$parent.registered && !this.$parent.$parent.$parent.authenticated">
                 <v-layout align-end justify-center row fill-height>
                   <span class="headline white--text">6 minute preview</span>
                 </v-layout>
-              </v-container>
+              </v-container> -->
             </v-img>
             <v-card-actions>
               <v-btn 
@@ -89,7 +89,6 @@
 <script>
 import atob from 'atob'
 import playButton from '@/assets/img/Play.png'
-// import imgPeople from '@/assets/img/people-working-out.jpg'
 import SignupComponent from '@/components/Signup.vue'
 import RegisterComponent from '@/components/Register.vue'
 
@@ -115,16 +114,19 @@ export default {
     RegisterComponent
   },
   methods: {
-    preview() {
+    async preview() {
       if (!this.$root.$children[0].authenticated) {
         this.dialog = true
       } else {
-        if (!this.$root.$children[0].cardOnFile) {
-          // alert('6 minute preview clip plays...')
-          this.sixMinuteAlert = true
-        } else {
+        const access_token = await this.$root.$children[0].$auth.getAccessToken()
+        const b_access_token = JSON.parse(atob(access_token.split('.')[1]))
+        console.log(JSON.stringify(b_access_token))
+        if (b_access_token.scp.includes('customer')) {
           // alert('video plays...')
           this.wholeVideoAlert = true
+        } else {
+          // alert('6 minute preview clip plays...')
+          this.sixMinuteAlert = true
         }
       }
     },
