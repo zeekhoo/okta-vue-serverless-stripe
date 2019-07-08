@@ -67,8 +67,7 @@ export default {
     return { 
       authenticated: false,
       loggedIn: false,
-      cardOnFile: false,
-      blogUrl: "http://bodblog.unidemo.online.s3-website-us-west-2.amazonaws.com"
+      cardOnFile: false
     }
   },
   created () { this.isAuthenticated() },
@@ -78,9 +77,10 @@ export default {
   },
   methods: {
     getBlogUrl() {
-      var newTab = this.blogUrl
+      const subdomain = window.location.host.split('.')[0]
+      var newTab = 'https://' + subdomain + '.bod-blog.unidemo.live'
       if (this.authenticated) {
-        newTab = this.blogUrl + '/login'
+        newTab = newTab + '/login'
       }
       window.open(newTab, '_blank')
     },
