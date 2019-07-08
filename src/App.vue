@@ -78,7 +78,7 @@ export default {
   methods: {
     getBlogUrl() {
       const subdomain = window.location.host.split('.')[0]
-      var newTab = 'https://' + subdomain + '.bod-blog.unidemo.live'
+      var newTab = 'https://' + subdomain + '.bodblog.unidemo.live'
       if (this.authenticated) {
         newTab = newTab + '/login'
       }
