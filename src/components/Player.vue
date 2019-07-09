@@ -35,23 +35,17 @@
       <v-flex xs12>
         <v-card>
           <v-container>
-            <v-alert v-model="sixMinuteAlert" type="info" dismissible>
-            6 minute preview clip plays...
+            <v-alert 
+              v-model="showAlert"
+              :type="alertType" 
+              dismissible>
+            {{alertMessage}}
             </v-alert>
-            <v-alert v-model="wholeVideoAlert" type="success" dismissible>
-            Whole video plays...
-            </v-alert>
-
             <v-img
               v-on:click.native="preview()"
               :src="image.people"
               height=550px
             >
-              <!-- <v-container v-if="this.$parent.$parent.$parent.lead && !this.$parent.$parent.$parent.registered && !this.$parent.$parent.$parent.authenticated">
-                <v-layout align-end justify-center row fill-height>
-                  <span class="headline white--text">6 minute preview</span>
-                </v-layout>
-              </v-container> -->
             </v-img>
             <v-card-actions>
               <v-btn 
@@ -91,6 +85,8 @@ import atob from 'atob'
 import playButton from '@/assets/img/Play.png'
 import SignupComponent from '@/components/Signup.vue'
 import RegisterComponent from '@/components/Register.vue'
+import oktaAuthConfig from '@/.config.js'
+import axios from 'axios'
 
 export default {
   name: 'Player',
@@ -105,8 +101,9 @@ export default {
       },
       dialog: false,
       dialog2: false,
-      sixMinuteAlert: false,
-      wholeVideoAlert: false
+      showAlert: false,
+      alertType: null,
+      alertMessage: null
     }
   },
   components: {
@@ -120,7 +117,26 @@ export default {
       } else {
         const access_token = await this.$root.$children[0].$auth.getAccessToken()
         const b_access_token = JSON.parse(atob(access_token.split('.')[1]))
-        console.log(JSON.stringify(b_access_token))
+        // console.log(JSON.stringify(b_access_token))
+        axios({
+            method: 'get',
+            url: 'https://' + oktaAuthConfig.bod_api + '/dev/unidemo/public/bod/video-player/play',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + access_token
+            }
+        })
+        .then(res=>{
+          console.log(res.data)
+          this.showAlert = true
+          this.alertType = res.data.alertType
+          this.alertMessage = res.data.message
+        })
+        .catch(err=>{
+          console.log(err)
+        })
+
         if (b_access_token.scp.includes('customer')) {
           // alert('video plays...')
           this.wholeVideoAlert = true
