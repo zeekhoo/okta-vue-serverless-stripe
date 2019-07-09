@@ -1,13 +1,6 @@
 <template>
   <v-container>
     <v-layout column>
-      <v-toolbar 
-        color="white"
-        v-if="this.$root.$children[0].authenticated"
-      >
-        <v-toolbar-title class="font-weight-light">Work it, {{user.name}}!</v-toolbar-title>
-      </v-toolbar>
-
       <v-dialog 
         v-model="dialog"
         width=700
@@ -43,17 +36,22 @@
             </v-alert>
             <v-img
               v-on:click.native="preview()"
-              :src="image.people"
+              :src="vid"
               height=550px
             >
             </v-img>
             <v-card-actions>
               <v-btn 
-                v-on:click.native="upgrade()"
+                v-on:click="upgrade()"
                 color="orange"
                 v-if="!this.$root.$children[0].cardOnFile"
               >
                 <span class="mr-2">Subscribe</span>
+              </v-btn>
+              <v-btn
+                v-on:click="$emit('close-player')"
+                >
+                <span class="mr-2">Back</span>
               </v-btn>
             </v-card-actions>
           </v-container>
@@ -110,6 +108,7 @@ export default {
     SignupComponent,
     RegisterComponent
   },
+  props: ['vid'],
   methods: {
     async preview() {
       if (!this.$root.$children[0].authenticated) {

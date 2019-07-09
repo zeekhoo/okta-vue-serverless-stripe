@@ -12,13 +12,23 @@
             <v-icon>search</v-icon>
           </v-btn>
         </v-toolbar>
-
-        <v-card>
+        <div
+          v-if="playerMode"
+          >
+          <PlayerComponent
+            v-bind:vid="vidSrc"
+            v-on:close-player="playerMode=false"
+            />
+        </div>
+        <v-card
+          v-if="!playerMode"
+          >
           <v-container
             fluid
             grid-list-xl
           >
-            <v-layout row wrap>
+            <v-layout 
+              row wrap>
               <v-flex
                 v-for="card in cards"
                 :key="card.title"
@@ -44,16 +54,12 @@
 
                   <v-card-actions>
                     <v-spacer></v-spacer>
-                    <div v-if="!fullVid">
-                      <v-btn href="/player">
-                        <span class="mr-2">Preview</span>
-                      </v-btn>
-                    </div>
-                    <div v-if="fullVid">
-                      <v-btn href="/player">
-                        <span class="mr-2">Watch</span>
-                      </v-btn>
-                    </div>
+                    <v-btn 
+                      v-on:click="playerMode=true; vidSrc=card.src;"
+                      >
+                      <span v-if="!fullVid" class="mr-2">Preview</span>
+                      <span v-if="fullVid" class="mr-2">Watch</span>
+                    </v-btn>
                   </v-card-actions>
                 </v-card>
               </v-flex>
@@ -67,12 +73,16 @@
 
 
 <script>
+import PlayerComponent from '@/components/Player.vue'
+
 export default {
   name: 'browse',
   data: function(){
     return {
       claims: '',
       fullVid: false,
+      playerMode: false,
+      vidSrc: null,
       cards: [
               { title: 'Extreme Burn', src: 'https://shawglobalnews.files.wordpress.com/2018/02/people-working-out.jpg?quality=70&strip=all&w=720&h=379&crop=1', flex: 6 },
               { title: 'Abs Anihilation', src: 'https://st.focusedcollection.com/13397678/i/650/focused_161218150-stock-photo-women-working-out-in-gym.jpg', flex: 3 },
@@ -89,6 +99,9 @@ export default {
               { title: 'Coresanity Redux', src: 'https://media.istockphoto.com/photos/fit-people-working-out-with-weights-in-a-gym-picture-id921878780?k=6&m=921878780&s=612x612&w=0&h=TvCcrBvtyvso6OvFFJQnSBOsBRgq0nZWQHTt2E58F7c=', flex: 3 }
             ]
     }
+  },
+  components: {
+    PlayerComponent
   },
   created () { this.setup() },
   updated: function() {

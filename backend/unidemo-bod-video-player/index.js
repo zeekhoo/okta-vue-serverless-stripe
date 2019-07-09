@@ -14,7 +14,7 @@ exports.handler = function(event, context, callback) {
     if (scopes.includes('customer')) {
         messageBody = {
             message: "Whole video plays",
-            details: "Because there is a 'customer' scope, the API only allows the whole video to play",
+            details: "Because there is a 'customer' scope, the API allows the whole video to play",
             alertType: "success"
         }
     }

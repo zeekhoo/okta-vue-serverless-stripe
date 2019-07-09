@@ -10,13 +10,20 @@
 
       <v-spacer></v-spacer>
 
-      <router-link
+      <!-- <router-link
         to="/"
+        v-on:click="window.location.href='/'"
         class="item"
       >
         <v-btn flat>Home</v-btn>
-      </router-link>
-      
+      </router-link> -->
+      <v-btn
+        flat
+        v-on:click="homeButton"
+        >
+        Home
+      </v-btn>
+
       <router-link
         to="/login"
         class="item"
@@ -113,6 +120,9 @@ export default {
     async logout () {
       await this.$auth.logout()
       await this.isAuthenticated()
+    },
+    homeButton() {
+      window.location.href="/"
     }
   }
 }
