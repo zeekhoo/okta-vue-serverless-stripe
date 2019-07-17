@@ -2,7 +2,7 @@
 @import '../assets/styles/okta-theme-override.css';
 
 .login {
-  background-image: url('https://gladstonemrm.com.au/wp-content/uploads/2018/08/2018-08-gym-member-retention.jpg'); 
+  background-image: url('http://d2bg6xcfalpw34.cloudfront.net/bod/img/unidemo-login.jpg'); 
   background-repeat: no-repeat; 
   background-size: 100%;
   background-position: center center;
@@ -26,6 +26,8 @@ export default {
   mounted: function () {
     this.$nextTick(function () {
       var scp = authConfig.oidc.scope.split(' ')
+      const index = scp.indexOf('prospect')
+      if(index>-1) scp.splice(index, 1)
       scp.push('customer')
       const config = {
         baseUrl: authConfig.base_url || authConfig.oidc.issuer.split('oauth2')[0],

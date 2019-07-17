@@ -1,7 +1,8 @@
 <style scoped>
 .signup {
+  /* background-image: url('https://s3-us-west-2.amazonaws.com/unidemo.assets/bod/img/unidemo-sales.jpg'); */
   background-image: url('../assets/img/bod-welcome.png');
-  background-position: 370px 0px;
+  background-position: 420px 15px;
 }
 </style>
 

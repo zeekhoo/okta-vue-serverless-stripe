@@ -235,6 +235,8 @@ export default {
                         localStorage.setItem('referrerPath', window.location.pathname)
                     }
                     var scp = oktaAuthConfig.oidc.scope.split(' ')
+                    const index = scp.indexOf('prospect')
+                    if(index>-1) scp.splice(index, 1)
                     scp.push('customer')
 
                     this.authClient.token.getWithRedirect({
@@ -247,9 +249,11 @@ export default {
     },
     async created () {
         this.user = await this.$auth.getUser()
-        this.email = this.user.email
-        this.firstName = this.user.given_name
-        if (this.user.family_name && this.user.family_name != '!') this.lastName = this.user.family_name
+        if (this.user) {
+            this.email = this.user.email
+            this.firstName = this.user.given_name
+            if (this.user.family_name && this.user.family_name != '!') this.lastName = this.user.family_name
+        }
     }
 }
 </script>

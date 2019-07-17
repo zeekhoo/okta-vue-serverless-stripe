@@ -98,7 +98,7 @@ export default {
           const token = await this.$auth.getIdToken()
           if (token) {
             const payload = JSON.parse(atob(token.split('.')[1]))
-            if (payload.groups.includes('ProspectSocial')) {
+            if (payload.idp) {
               this.loggedIn = true
             }
             if (payload.groups.includes('Customer')) {
