@@ -41,23 +41,18 @@ exports.handler = async function(event, context, callback) {
         }
     };
 
-    const usersRes = await axios({
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': 'SSWS ' + ssws
-        },
-        url: oktaBaseUrl+ '/api/v1/users?activate=true',
-        data: user
-    })
-    console.log(usersRes.data);
-    const authnRes = await authnPromise(oktaBaseUrl, un, pw);
+    var responseBody = null;
+    const status = await userCreatePromise(user, oktaBaseUrl, ssws);
+    if (status == 201) {
+        const authnRes = await authnPromise(oktaBaseUrl, un, pw);
+        responseBody = JSON.stringify({sessionToken: authnRes.sessionToken});
+    } else {
+        responseBody = JSON.stringify({err: 'duplicate email'});
+    }
+
     const response = {
-        statusCode: 200,
-        body: JSON.stringify({
-            sessionToken: authnRes.sessionToken
-        }),
+        statusCode: status,
+        body: responseBody,
         isBase64Encoded: false,
         headers: {
             "Access-Control-Allow-Origin": "*"
@@ -90,6 +85,34 @@ function getSSWSPromise(subdomain) {
             reject(err);
         });
     });
+}
+
+function userCreatePromise(user, oktaBaseUrl, ssws) {
+    return new Promise((resolve,reject)=>{
+        axios({
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': 'SSWS ' + ssws
+            },
+            url: oktaBaseUrl+ '/api/v1/users?activate=true',
+            data: user
+        })
+        .then(res=>{
+            resolve(201);
+        })
+        .catch(err=>{
+            console.log('ERROR');
+            const data = JSON.stringify(err.response.data);
+            console.log(data);
+            if (data.includes('already exists')) {
+                resolve(204);
+            } else {
+                resolve(400);
+            }
+        })
+    })
 }
 
 function authnPromise(baseUrl, un, pw) {

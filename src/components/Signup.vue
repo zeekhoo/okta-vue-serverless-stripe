@@ -27,6 +27,7 @@
                   label="E-mail"
                   required
                   :disabled="signingUp"
+                  :error-messages="messages"
               ></v-text-field>
               <v-checkbox
                   v-model="checkbox"
@@ -86,8 +87,12 @@ export default {
       v => !!v || 'E-mail is required',
       v => /.+@.+/.test(v) || 'E-mail must be valid'
     ],
+    messages: null,
     checkbox: false
   }),
+  watch: {
+    email: function() {this.messages=null}
+  },
   methods: {
     alert() {
       if(this.$refs.form.validate()) {
@@ -95,6 +100,7 @@ export default {
       }
     },
     signup() {
+      this.messages = null
       if (this.$refs.form.validate()) {
         this.signingUp = true
         if (this.email && this.name) {
@@ -111,13 +117,19 @@ export default {
             url: 'https://' + oktaAuthConfig.bod_api + '/dev/unidemo/public/bod/signup',
             data: authnBody
           })
-          .then(
-            (res) => {
+          .then((res) => {
+            if (res.status == 201) {
               var referrerPath = "/"
               if (window.location.pathname) referrerPath = window.location.pathname
               this.$auth.loginRedirect(referrerPath, {sessionToken: res.data.sessionToken})
+            } else {
+              this.messages = 'Email already taken'
+              this.signingUp = false
             }
-          )
+          })
+          .catch((err) => {
+            console.log(err)
+          })
         }
       }
     },
