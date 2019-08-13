@@ -40,6 +40,7 @@
                         label="E-mail"
                         required
                         :disabled="registering"
+                        :error-messages="messages"
                         ></v-text-field>
 
                         <v-text-field
@@ -193,6 +194,7 @@ export default {
         cvv: 'CVV',
         zip: '',
         authClient: false,
+        messages: null
     }),
     mounted: function () {
         this.authClient = new OktaAuth({
@@ -202,12 +204,15 @@ export default {
             redirectUri: oktaAuthConfig.oidc.redirect_uri
         })
     },
+    watch: {
+        email: function() {this.messages=null}
+    },
     methods: {
         async upgrade () {
             if (this.$refs.form.validate()) {
                 this.registering = true
 
-                const body = {
+                let body = {
                     username: this.email,
                     firstName: this.firstName,
                     lastName: this.lastName,
@@ -218,34 +223,63 @@ export default {
                 if (oktaAuthConfig.isRunningLocal) body.mocksubdomain = oktaAuthConfig.mock_subdomain
 
                 const accessToken = await this.$auth.getAccessToken()
-                axios({
-                    method: 'post',
-                    url: 'https://' + oktaAuthConfig.bod_api + '/dev/unidemo/public/bod/register/' + this.user.sub,
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + accessToken
-                    },
-                    data: body
-                })
-                .then((res) => {
-                    var referrerPath = "/"
-                    if (window.location.pathname) {
-                        referrerPath = window.location.pathname
-                        localStorage.setItem('referrerPath', window.location.pathname)
-                    }
-                    var scp = oktaAuthConfig.oidc.scope.split(' ')
-                    const index = scp.indexOf('prospect')
-                    if(index>-1) scp.splice(index, 1)
-                    scp.push('customer')
-
-                    this.authClient.token.getWithRedirect({
-                        responseType: ['id_token', 'token'],
-                        scopes: scp
+                if (this.user != undefined) {
+                    const sub = this.user.sub
+                    axios({
+                        method: 'post',
+                        url: 'https://' + oktaAuthConfig.bod_api + '/dev/unidemo/public/bod/register/' + sub,
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + accessToken
+                        },
+                        data: body
                     })
-                })
+                    .then((res) => {
+                        this.getWithRedirect()
+                    })
+                }
+                else {
+                    body.name = body.firstName + ' ' + body.lastName
+                    axios({
+                        method: 'post',
+                        url: 'https://' + oktaAuthConfig.bod_api + '/dev/unidemo/public/bod/signup',
+                        data: body
+                    })
+                    .then((res) => {
+                        if (res.status == 201) {
+                            this.getWithRedirect(res.data.sessionToken)
+                        } else {
+                            this.messages = 'Email already taken'
+                            this.registering = false
+                        }
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })                  
+                }
             }
         },
+        getWithRedirect(sessionToken) {
+            let referrerPath = "/"
+            if (window.location.pathname) {
+                referrerPath = window.location.pathname
+                localStorage.setItem('referrerPath', window.location.pathname)
+            }
+            let scp = oktaAuthConfig.oidc.scope.split(' ')
+            const index = scp.indexOf('prospect')
+            if(index>-1) scp.splice(index, 1)
+            scp.push('customer')
+
+            let requestOptions = {
+                responseType: ['id_token', 'token'],
+                scopes: scp
+            }
+            if (sessionToken != undefined) {
+                requestOptions.sessionToken = sessionToken
+            }
+            this.authClient.token.getWithRedirect(requestOptions)
+        }
     },
     async created () {
         this.user = await this.$auth.getUser()
@@ -256,4 +290,6 @@ export default {
         }
     }
 }
+
+
 </script>
