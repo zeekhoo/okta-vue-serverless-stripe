@@ -59,6 +59,7 @@
 
 <script>
 import atob from 'atob'
+import config from '@/.config.js'
 
 export default {
   name: 'app',
@@ -77,7 +78,7 @@ export default {
   methods: {
     getBlogUrl() {
       const subdomain = window.location.host.split('.')[0]
-      var newTab = 'https://' + subdomain + '.bodblog.unidemo.live'
+      var newTab = 'https://' + subdomain + '.bodblog.' + config.bodblog_domain
       if (this.authenticated) {
         newTab = newTab + '/login'
       }
