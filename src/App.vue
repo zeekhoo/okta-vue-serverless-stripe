@@ -9,14 +9,6 @@
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
-
-      <!-- <router-link
-        to="/"
-        v-on:click="window.location.href='/'"
-        class="item"
-      >
-        <v-btn flat>Home</v-btn>
-      </router-link> -->
       <v-btn
         flat
         v-on:click="homeButton"
