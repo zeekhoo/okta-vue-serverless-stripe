@@ -13,6 +13,6 @@ export default {
 	prospect_group_id: process.env.VUE_APP_PROSPECT_GROUP_ID,
 	customer_group_id: process.env.VUE_APP_CUSTOMER_GROUP_ID,
 	client2_id: process.env.VUE_APP_CLIENT2_ID,
-	bodblog_domain: process.env.VUE_APP_BODBLOG_DOMAIN,
+	bodblog_domain: "unidemo.live",
 	mock_subdomain: process.env.VUE_APP_MOCK
 }

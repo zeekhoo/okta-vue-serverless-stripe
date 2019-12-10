@@ -29,7 +29,8 @@ exports.handler = async function(event, context, callback) {
         firstName: fn,
         lastName: ln,
         email: un,
-        login: un
+        login: un,
+        numFreebiesAvailable: 3
     }
 
     let pw = "Atko123456789#"

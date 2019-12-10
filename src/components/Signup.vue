@@ -105,7 +105,7 @@ export default {
         this.signingUp = true
         if (this.email && this.name) {
           //add user
-          const authnBody = {
+          let authnBody = {
               name: this.name,
               username: this.email
           }
@@ -114,7 +114,7 @@ export default {
           }
           axios({
             method: 'post',
-            url: 'https://' + oktaAuthConfig.bod_api + '/dev/unidemo/public/bod/signup',
+            url: oktaAuthConfig.bod_api + '/unidemo/public/bod/signup',
             data: authnBody
           })
           .then((res) => {

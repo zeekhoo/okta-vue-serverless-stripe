@@ -76,12 +76,13 @@ const onAuthRequired = async (from, to, next) => {
       oktaAuthConfig.isRunningLocal = true
     }
 
-    Vue.use(Auth, {
+    const config = {
       issuer: oktaAuthConfig.oidc.issuer,
       client_id: oktaAuthConfig.oidc.client_id,
       redirect_uri: oktaAuthConfig.oidc.redirect_uri,
       scope: oktaAuthConfig.oidc.scope
-    })
+    }
+    Vue.use(Auth, config)
   }
 
   if (from.matched.some(record => record.meta.requiresAuth) && !(await Vue.prototype.$auth.isAuthenticated())) {

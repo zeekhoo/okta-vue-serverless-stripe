@@ -227,7 +227,7 @@ export default {
                     const sub = this.user.sub
                     axios({
                         method: 'post',
-                        url: 'https://' + oktaAuthConfig.bod_api + '/dev/unidemo/public/bod/register/' + sub,
+                        url: oktaAuthConfig.bod_api + '/unidemo/public/bod/register/' + sub,
                         headers: {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json',
@@ -243,7 +243,7 @@ export default {
                     body.name = body.firstName + ' ' + body.lastName
                     axios({
                         method: 'post',
-                        url: 'https://' + oktaAuthConfig.bod_api + '/dev/unidemo/public/bod/signup',
+                        url: oktaAuthConfig.bod_api + '/unidemo/public/bod/signup',
                         data: body
                     })
                     .then((res) => {
