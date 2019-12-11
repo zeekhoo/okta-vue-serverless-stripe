@@ -32,10 +32,10 @@
 
         <v-content>
             <router-view />
-            <v-footer v-if="showFooter" padless fixed>
+            <v-footer v-if="showFooter" padless fixed height="55">
                 <v-card flat width="100%" class="yellow lighten-3">
-                    <v-card-text class="text-center">
-                        Number of previews left:
+                    <v-card-text class="footer-center">
+                        Number of previews remaining:
                         <strong>{{numPreviews}}</strong>
                     </v-card-text>
                 </v-card>
@@ -63,13 +63,19 @@ export default {
         showFooter() {
             if (this.footer) return true;
 
+            if (!this.authenticated) return false;
+
+            if (this.cardOnFile) return false;
+
             // display the footer when the freebies start to count down
-            return (this.numFreebiesAvailable < 3);
+            return this.numFreebiesAvailable < 3;
         },
         numPreviews() {
-          if (!this.numFreebiesAvailable) return 0;
+            if (!this.numFreebiesAvailable) return 0;
 
-          return this.numFreebiesAvailable <= 0 ? 0 : this.numFreebiesAvailable
+            return this.numFreebiesAvailable <= 0
+                ? 0
+                : this.numFreebiesAvailable;
         }
     },
     created() {
@@ -92,7 +98,6 @@ export default {
         async isAuthenticated() {
             if (this.$auth) {
                 this.authenticated = await this.$auth.isAuthenticated();
-                console.log(this.authenticated);
                 if (this.authenticated) {
                     const token = await this.$auth.getIdToken();
                     if (token) {
@@ -127,3 +132,9 @@ export default {
     }
 };
 </script>
+
+<style scoped>
+.footer-center {
+  text-align: center;
+}
+</style>

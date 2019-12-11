@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "build": "vue-cli-service build",
+    "build-stage": "vue-cli-service build --mode stage"
   },
   "dependencies": {
     "@okta/okta-signin-widget": "^3.3.3",

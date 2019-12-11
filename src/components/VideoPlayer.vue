@@ -2,7 +2,7 @@
     <div class="video-container">
         <iframe
             width="100%"
-            height="580"
+            height="500"
             :src="video ? video : null"
             frameborder="0"
             allow="autoplay; encrypted-media"
