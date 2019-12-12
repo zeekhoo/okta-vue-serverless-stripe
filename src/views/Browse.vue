@@ -74,9 +74,9 @@ export default {
             playerMode: false,
             vidSrc: null,
             vids: [
-                {youtubeURL: "https://www.youtube.com/embed/J7D3bOOexf0?autoplay=1"},
-                {youtubeURL: "https://www.youtube.com/embed/JBgFVmxl0nQ?autoplay=1&start=40"},
-                {youtubeURL: "https://www.youtube.com/embed/wbMsPHccMpQ?autoplay=1"}
+                {youtubeURL: "https://www.youtube.com/embed/J7D3bOOexf0"},
+                {youtubeURL: "https://www.youtube.com/embed/JBgFVmxl0nQ?start=40"},
+                {youtubeURL: "https://www.youtube.com/embed/wbMsPHccMpQ"}
             ],
             cards: [
                 {
@@ -163,7 +163,8 @@ export default {
             this.claims = await this.$auth.getUser();
             this.cards.map(card=>{
                 let rando = this.randomIntFromInterval(0, this.vids.length - 1)
-                card.youtubeURL = this.vids[rando].youtubeURL;
+                let youtubeURL = this.vids[rando].youtubeURL
+                card.youtubeURL = youtubeURL + (youtubeURL.indexOf('?') > 1 ? '&' : '?') + 'autoplay=1&mute=1';
             })
         },
         openPlayer(src) {

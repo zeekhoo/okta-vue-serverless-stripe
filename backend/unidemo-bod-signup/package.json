@@ -10,7 +10,8 @@
   "author": "zeekhoo-okta",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.19.0"
+    "axios": "^0.19.0",
+    "basic-auth-token": "^0.4.2"
   },
   "devDependencies": {
     "lambda-local": "^1.1.0",

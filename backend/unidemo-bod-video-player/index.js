@@ -1,6 +1,10 @@
 const atob = require('atob');
 const axios = require('axios');
+const basicAuth = require('basic-auth-token');
 const udpBaseUrl = process.env.UDP_BASE_URL;
+const issuer = process.env.ISSUER;
+const clientId = process.env.CLIENT_ID;
+const clientSecret = process.env.CLIENT_SECRET;
 
 exports.handler = async function(event, context, callback) {
     console.log(event);
@@ -27,25 +31,37 @@ exports.handler = async function(event, context, callback) {
         if (event.headers.mocksubdomain && event.headers.mocksubdomain != 'none')
             subdomain = event.headers.mocksubdomain;
         
-        const subdomainConfig = await getSSWSPromise(subdomain);
-        const ssws = subdomainConfig.ssws;
-        const oktaBaseUrl = subdomainConfig.org;
-        let prospect = await getUserPromise(token.sub, oktaBaseUrl, ssws);
-        if (prospect.profile) {
-            let numFreebiesAvailable = prospect.profile.numFreebiesAvailable <= 0 ? 0 : prospect.profile.numFreebiesAvailable - 1;
-            let profile = {
-                firstName: prospect.profile.firstName,
-                lastName: prospect.profile.lastName,
-                login: prospect.profile.login,
-                email: prospect.profile.email,
-                numFreebiesAvailable: numFreebiesAvailable
-            }
-            await updateUserPromise(profile, oktaBaseUrl, ssws)
-        }
-    }
-        
-    console.log(messageBody);
+        try {
+            const ccRes = await axios.post(issuer + '/v1/token', 'grant_type=client_credentials&scope=secrets:read', {
+                headers: {
+                    Authorization: 'Basic ' + basicAuth(clientId, clientSecret)
+                }
+            })
+            const subRes = await axios.get(udpBaseUrl + '/api/subdomains/' + subdomain, {
+                headers: {
+                    'Authorization': 'Bearer ' + ccRes.data.access_token
+                }
+            })
+            const ssws = subRes.data.okta_api_token;
+            const oktaBaseUrl = subRes.data.okta_org_name;
     
+            let prospect = await getUserPromise(token.sub, oktaBaseUrl, ssws);
+            if (prospect.profile) {
+                let numFreebiesAvailable = prospect.profile.numFreebiesAvailable <= 0 ? 0 : prospect.profile.numFreebiesAvailable - 1;
+                let profile = {
+                    firstName: prospect.profile.firstName,
+                    lastName: prospect.profile.lastName,
+                    login: prospect.profile.login,
+                    email: prospect.profile.email,
+                    numFreebiesAvailable: numFreebiesAvailable
+                }
+                await updateUserPromise(profile, oktaBaseUrl, ssws);
+            }
+        }
+        catch(err) {
+            console.log(err);
+        }
+    }    
     const response = {
         statusCode: 200,
         body: JSON.stringify(messageBody),
@@ -56,34 +72,6 @@ exports.handler = async function(event, context, callback) {
     };
     callback(null, response);
 }
-
-
-function getSSWSPromise(subdomain) {
-    return new Promise((resolve, reject) => {
-        const requestHeaders = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + process.env.UDP_KEY
-        }
-        axios({
-            method: 'GET',
-            url: udpBaseUrl + '/api/subdomains/' + subdomain,
-            headers: requestHeaders
-        })
-        .then((res) => {
-            if (res.data) {
-                resolve({
-                    ssws: res.data.okta_api_token || '',
-                    org: res.data.okta_org_name
-                })
-            }
-        })
-        .then((err) => {
-            reject(err)
-        })
-    })
-}
-
 
 function getUserPromise(userid, oktaBaseUrl, ssws) {
     return new Promise((resolve,reject)=>{

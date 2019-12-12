@@ -1,7 +1,11 @@
 "use strict"
 
 const axios = require('axios');
+const basicAuth = require('basic-auth-token');
 const udpBaseUrl = process.env.UDP_BASE_URL;
+const issuer = process.env.ISSUER;
+const clientId = process.env.CLIENT_ID;
+const clientSecret = process.env.CLIENT_SECRET;
 
 exports.handler = async function (event, context, callback) {
     var subdomain = event.headers.origin;
@@ -9,15 +13,6 @@ exports.handler = async function (event, context, callback) {
 
     const eventBody = JSON.parse(event.body);
     if (eventBody.mocksubdomain) subdomain = eventBody.mocksubdomain;
-    console.log('Subdomain: ' + subdomain);
-
-    const subdomainConfig = await getSSWSPromise(subdomain);
-    const ssws = subdomainConfig.ssws;
-    const oktaBaseUrl = subdomainConfig.org;
-
-    const configRes = await axios.get(udpBaseUrl + '/api/configs/' + subdomain + '/bod');
-    let groupIds = [];
-    groupIds.push(configRes.data.settings.prospect_group_id || '');
 
     const un = eventBody.username;
     const name = eventBody.name || '';
@@ -29,89 +24,83 @@ exports.handler = async function (event, context, callback) {
         email: un,
         login: un
     }
+    let groupIds = [];
 
-    try {
-        let res = await axios.get(oktaBaseUrl + '/api/v1/meta/schemas/user/default', {
-            headers: {
-                Authorization: 'SSWS ' + ssws
-            }
-        })
-        if (res.data.definitions.custom.properties.numFreebiesAvailable)
-            profile.numFreebiesAvailable = 3;
-    } catch (err) {
-        console.log(err);
-    }
-
-    let pw = "Atko123456789#";
-    // If password is present, then request is coming in from the Register View
-    if (eventBody.password != undefined) {
-        pw = eventBody.password;
-        groupIds.push(configRes.data.settings.customer_group_id || '');
-        profile.firstName = eventBody.firstName;
-        profile.lastName = eventBody.lastName;
-        profile.goals = eventBody.goals;
-        profile.zipCode = eventBody.zip;
-    }
-
-    const user = {
-        profile: profile,
-        groupIds: groupIds,
-        credentials: {
-            password: {
-                value: pw
-            }
-        }
-    }
-
-    let responseBody = null;
-    const status = await userCreatePromise(user, oktaBaseUrl, ssws);
-    if (status == 201) {
-        const authnRes = await authnPromise(oktaBaseUrl, un, pw);
-        responseBody = JSON.stringify({
-            sessionToken: authnRes.sessionToken
-        })
-    } else {
-        responseBody = JSON.stringify({
-            err: 'duplicate email'
-        })
-    }
-
-    const response = {
-        statusCode: status,
-        body: responseBody,
+    let response = {
         isBase64Encoded: false,
         headers: {
             "Access-Control-Allow-Origin": "*"
         }
     }
+
+    try {
+        const ccRes = await axios.post(issuer + '/v1/token', 'grant_type=client_credentials&scope=secrets:read', {
+            headers: {
+                Authorization: 'Basic ' + basicAuth(clientId, clientSecret)
+            }
+        })
+        const subRes = await axios.get(udpBaseUrl + '/api/subdomains/' + subdomain, {
+            headers: {
+                'Authorization': 'Bearer ' + ccRes.data.access_token
+            }
+        })
+        const ssws = subRes.data.okta_api_token;
+        const oktaBaseUrl = subRes.data.okta_org_name;
+
+        const configRes = await axios.get(udpBaseUrl + '/api/configs/' + subdomain + '/bod');
+        groupIds.push(configRes.data.settings.prospect_group_id || '');
+    
+
+        let metaRes = await axios.get(oktaBaseUrl + '/api/v1/meta/schemas/user/default', {
+            headers: {
+                Authorization: 'SSWS ' + ssws
+            }
+        })
+        if (metaRes.data.definitions.custom.properties.numFreebiesAvailable)
+            profile.numFreebiesAvailable = 3;
+
+        let pw = "Atko123456789#";
+        // If password is present, then request is coming in from the Register View
+        if (eventBody.password != undefined) {
+            pw = eventBody.password;
+            groupIds.push(configRes.data.settings.customer_group_id || '');
+            profile.firstName = eventBody.firstName;
+            profile.lastName = eventBody.lastName;
+            profile.goals = eventBody.goals;
+            profile.zipCode = eventBody.zip;
+        }
+
+        const user = {
+            profile: profile,
+            groupIds: groupIds,
+            credentials: {
+                password: {
+                    value: pw
+                }
+            }
+        }
+        const status = await userCreatePromise(user, oktaBaseUrl, ssws);
+        response.statusCode = status;
+        if (status == 201) {
+            const authnRes = await authnPromise(oktaBaseUrl, un, pw);
+            response.body = JSON.stringify({
+                sessionToken: authnRes.sessionToken
+            })
+        } else {
+            response.body = JSON.stringify({
+                err: 'duplicate email'
+            })
+        }    
+    } catch (err) {
+        response.statusCode = 400;
+        response.body = JSON.stringify(err.response.data);
+    }
+
+    console.log(response);
     callback(null, response);
 }
 
-function getSSWSPromise(subdomain) {
-    return new Promise((resolve, reject) => {
-        const requestHeaders = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + process.env.UDP_KEY
-        }
-        axios({
-                method: 'GET',
-                url: udpBaseUrl + '/api/subdomains/' + subdomain,
-                headers: requestHeaders
-            })
-            .then((res) => {
-                if (res.data) {
-                    resolve({
-                        ssws: res.data.okta_api_token || '',
-                        org: res.data.okta_org_name
-                    });
-                }
-            })
-            .then((err) => {
-                reject(err);
-            })
-    })
-}
+
 
 function userCreatePromise(user, oktaBaseUrl, ssws) {
     return new Promise((resolve, reject) => {
@@ -126,6 +115,8 @@ function userCreatePromise(user, oktaBaseUrl, ssws) {
                 data: user
             })
             .then(res => {
+                console.log('userCreatePromise:');
+                console.log(res);
                 resolve(201);
             })
             .catch(err => {
@@ -156,6 +147,7 @@ function authnPromise(baseUrl, un, pw) {
                 }
             })
             .then((res) => {
+                console.log('authnPromise:');
                 console.log(res.data);
                 resolve(res.data);
             })
