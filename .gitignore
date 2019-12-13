@@ -1,8 +1,6 @@
 .DS_Store
 node_modules
-/dist
-backend/unidemo-bod-register/dist/
-backend/unidemo-bod-signup/dist/
+dist
 
 package-lock.json
 
