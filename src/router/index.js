@@ -11,10 +11,10 @@ import HelpComponent from '@/views/Help.vue'
 var subdomain = window.location.host.split('.')[0]
 var isRunningLocal = false
 if (/^localhost:\d{4}$/.test(subdomain)) {
-  isRunningLocal = true
+    isRunningLocal = true
 }
 
-import WellKnownConfigs from '../services/api/WellKnownConfigs'
+import configs from '@/plugins/configs'
 
 import Auth from '@okta/okta-vue'
 import oktaAuthConfig from '@/.config.js'
@@ -22,74 +22,56 @@ import oktaAuthConfig from '@/.config.js'
 Vue.use(Router)
 
 const router = new Router({
-  mode: 'history',
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: Home
-    },
-    {
-      path: '/login',
-      component: LoginComponent
-    },
-    {
-      path: '/signup',
-      component: SignupComponent
-    },
-    {
-      path: '/register',
-      component: RegisterComponent
-    },
-    {
-      path: '/implicit/callback',
-      component: Auth.handleCallback()
-    },
-    {
-      path: '/player',
-      component: PlayerComponent
-    },
-    {
-      path: '/help',
-      component: HelpComponent
-    }
-  ]
+    mode: 'history',
+    routes: [{
+            path: '/',
+            name: 'home',
+            component: Home
+        },
+        {
+            path: '/login',
+            component: LoginComponent
+        },
+        {
+            path: '/signup',
+            component: SignupComponent
+        },
+        {
+            path: '/register',
+            component: RegisterComponent
+        },
+        {
+            path: '/implicit/callback',
+            component: Auth.handleCallback()
+        },
+        {
+            path: '/player',
+            component: PlayerComponent
+        },
+        {
+            path: '/help',
+            component: HelpComponent
+        }
+    ]
 })
 
 var initAuth = true
+Vue.use(configs, oktaAuthConfig);
+
 const onAuthRequired = async (from, to, next) => {
-  if (initAuth) {
-    initAuth = false
-    if (!isRunningLocal) {
-      oktaAuthConfig.isRunningLocal = false
-
-      const data = await WellKnownConfigs.getWellKnownConfigs(subdomain)
-      oktaAuthConfig.base_url=data.okta_org_name
-      oktaAuthConfig.oidc.issuer=data.issuer
-      oktaAuthConfig.oidc.client_id=data.client_id
-      oktaAuthConfig.oidc.redirect_uri=data.redirect_uri
-      oktaAuthConfig.social.fb=data.fbId
-      oktaAuthConfig.prospect_group_id=data.prospect_group_id
-      oktaAuthConfig.customer_group_id=data.customer_group_id
-    } 
-    else {
-      oktaAuthConfig.isRunningLocal = true
+    if (initAuth) {
+        initAuth = false
+        const config = await Vue.prototype.$configs.getConfig();
+        Vue.use(Auth, config)
     }
 
-    const config = {
-      issuer: oktaAuthConfig.oidc.issuer,
-      client_id: oktaAuthConfig.oidc.client_id,
-      redirect_uri: oktaAuthConfig.oidc.redirect_uri,
-      scope: oktaAuthConfig.oidc.scope
+    if (from.matched.some(record => record.meta.requiresAuth) && !(await Vue.prototype.$auth.isAuthenticated())) {
+        next({
+            path: '/login'
+        })
+    } else {
+        next()
     }
-    Vue.use(Auth, config)
-  }
-
-  if (from.matched.some(record => record.meta.requiresAuth) && !(await Vue.prototype.$auth.isAuthenticated())) {
-    next({ path: '/login' })
-  } else {
-    next()
-  }
 }
 
 router.beforeEach(onAuthRequired)

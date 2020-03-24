@@ -3,7 +3,7 @@ import oktaAuthConfig from '@/.config.js'
 
 export default {
 	getWellKnownConfigs(subdomain) {
-		const path = oktaAuthConfig.udp_api + '/api/configs/' + subdomain  + '/bod';
+        const path = oktaAuthConfig.udp_api + '/api/configs/' + subdomain  + '/bod';
 		return axios.get(path)
 		.then((res) => {
 			var result = {
@@ -15,7 +15,7 @@ export default {
 				prospect_group_id: '',
 				customer_group_id: ''
 			};
-			const data = res.data;
+            const data = res.data;
 			if (Object.keys(data).length > 0) {
 				result.issuer=data.issuer || '';
 				result.base_url=data.okta_org_name || '';
