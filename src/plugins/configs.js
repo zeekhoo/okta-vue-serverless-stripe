@@ -1,14 +1,11 @@
 import WellKnownConfigs from '@/services/api/WellKnownConfigs'
-import axios from 'axios';
 
 class Configs {
     constructor(config) {
         this.oktaAuthConfig = config;
 
-        // this.subdomain = window.location.host.split('.')[0];
-        // this.isRunningLocal = (/^localhost:\d{4}$/.test(this.subdomain));
-        this.subdomain = 'zeekhoo-preview';
-        this.isRunningLocal = false;
+        this.subdomain = window.location.host.split('.')[0];
+        this.isRunningLocal = (/^localhost:\d{4}$/.test(this.subdomain));
         this.config = null;
     }
     async getConfig() {
