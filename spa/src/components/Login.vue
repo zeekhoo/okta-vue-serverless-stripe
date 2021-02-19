@@ -19,27 +19,24 @@
 import OktaSignIn from "@okta/okta-signin-widget";
 import "@okta/okta-signin-widget/dist/css/okta-sign-in.min.css";
 
-// import authConfig from '@/.config.js'
-
 export default {
   name: 'Login',
   mounted: function () {
     this.$nextTick(async function () {
-      const authConfig = await this.$configs.getConfig();
       const appConfig = await this.$configs.getAppConfig();
 
-      var scp = authConfig.scopes;
+      var scp = appConfig.oidc.scopes;
       const index = scp.indexOf('prospect')
       if(index>-1) scp.splice(index, 1)
       scp.push('customer')
       const config = {
-        baseUrl: authConfig.base_url || authConfig.issuer.split('oauth2')[0],
-        clientId: authConfig.clientId,
-        redirectUri: authConfig.redirectUri,
+        baseUrl: appConfig.oidc.base_url || appConfig.oidc.issuer.split('oauth2')[0],
+        clientId: appConfig.oidc.clientId,
+        redirectUri: appConfig.oidc.redirectUri,
         authParams: {
           responseType: ['code'],
           pkce: true,
-          issuer: authConfig.issuer,
+          issuer: appConfig.oidc.issuer,
           scopes: scp,
           display: 'page'
         },

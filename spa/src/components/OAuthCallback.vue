@@ -9,10 +9,8 @@ export default Vue.extend({
   name: 'OauthCallback',
   async beforeMount () {
     await this.$auth.handleLoginRedirect();
-    let referrerPath = localStorage.getItem('referrerPath');
-    if (!referrerPath) referrerPath = '/';
-    console.log('referrerPath = ', referrerPath);
-    window.location.href = referrerPath;
+    const referrerPath = localStorage.getItem('referrerPath');
+    window.location.href = referrerPath ? referrerPath : '/';
   }
 })
 </script>

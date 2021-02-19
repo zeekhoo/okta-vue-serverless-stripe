@@ -1,143 +1,133 @@
 <template>
-    <v-app ref="myApp">
-        <v-toolbar app>
-            <v-toolbar-title class="headline text-uppercase">
-                <span>NitroBurn</span>
-                <span class="font-weight-light">Extreme Workouts Online</span>
-            </v-toolbar-title>
+  <v-app ref="myApp">
+    <v-toolbar app>
+      <v-toolbar-title class="headline text-uppercase">
+        <span>NitroBurn</span>
+        <span class="font-weight-light">Extreme Workouts Online</span>
+      </v-toolbar-title>
 
-            <v-spacer></v-spacer>
-            <v-btn flat v-on:click="homeButton">Home</v-btn>
+      <v-spacer></v-spacer>
+      <v-btn flat v-on:click="homeButton">Home</v-btn>
 
-            <router-link to="/login" class="item" v-if="!loggedIn">
-                <v-btn flat>Login</v-btn>
-            </router-link>
+      <router-link to="/login" class="item" v-if="!loggedIn">
+        <v-btn flat>Login</v-btn>
+      </router-link>
 
-            <router-link
-                to="/"
-                id="logout-button"
-                class="item"
-                v-if="loggedIn"
-                v-on:click.native="logout()"
-            >
-                <v-btn flat>Logout</v-btn>
-            </router-link>
+      <router-link
+        to="/"
+        id="logout-button"
+        class="item"
+        v-if="loggedIn"
+        v-on:click.native="logout()"
+      >
+        <v-btn flat>Logout</v-btn>
+      </router-link>
 
-            <v-btn flat @click="getBlogUrl()" target="_blank">Blog</v-btn>
+      <v-btn flat @click="getBlogUrl()" target="_blank">Blog</v-btn>
 
-            <v-btn to="/help" flat>
-                <span class="mr-2">Help</span>
-            </v-btn>
-        </v-toolbar>
+    </v-toolbar>
 
-        <v-content>
-            <router-view />
-            <v-footer v-if="showFooter" padless fixed height="55">
-                <v-card flat width="100%" class="yellow lighten-3">
-                    <v-card-text class="footer-center">
-                        Number of previews remaining:
-                        <strong>{{numPreviews}}</strong>
-                    </v-card-text>
-                </v-card>
-            </v-footer>
-        </v-content>
-    </v-app>
+    <v-content>
+      <router-view />
+      <v-footer v-if="showFooter" padless fixed height="55">
+        <v-card flat width="100%" class="yellow lighten-3">
+          <v-card-text class="footer-center">
+            Number of previews remaining:
+            <strong>{{ numPreviews }}</strong>
+          </v-card-text>
+        </v-card>
+      </v-footer>
+    </v-content>
+  </v-app>
 </template>
 
 <script>
 import atob from "atob";
-import config from "@/.config.js";
 
 export default {
-    name: "app",
-    data: function() {
-        return {
-            authenticated: false,
-            token: null,
-            groups: null,
-            loggedIn: false,
-            cardOnFile: false,
-            footer: false,
-            numFreebiesAvailable: null
-        };
-    },
-    computed: {
-        showFooter() {
-            if (this.footer) return true;
+  name: "app",
+  data: function () {
+    return {
+      authenticated: false,
+      token: null,
+      groups: null,
+      loggedIn: false,
+      cardOnFile: false,
+      footer: false,
+      numFreebiesAvailable: null,
+    };
+  },
+  computed: {
+    showFooter() {
+      if (this.footer) return true;
 
-            if (!this.authenticated) return false;
+      if (!this.authenticated) return false;
 
-            if (this.cardOnFile) return false;
+      if (this.cardOnFile) return false;
 
-            // display the footer when the freebies start to count down
-            return this.numFreebiesAvailable < 3;
-        },
-        numPreviews() {
-            if (!this.numFreebiesAvailable) return 0;
+      // display the footer when the freebies start to count down
+      return this.numFreebiesAvailable < 3;
+    },
+    numPreviews() {
+      if (!this.numFreebiesAvailable) return 0;
 
-            return this.numFreebiesAvailable <= 0
-                ? 0
-                : this.numFreebiesAvailable;
-        }
+      return this.numFreebiesAvailable <= 0 ? 0 : this.numFreebiesAvailable;
     },
-    created() {
-        this.isAuthenticated();
+  },
+  created() {
+    this.isAuthenticated();
+  },
+  watch: {
+    // Everytime the route changes, check for auth status
+    $route: "isAuthenticated",
+  },
+  methods: {
+    async getBlogUrl() {
+      const subdomain = window.location.host.split(".")[0];
+      const appConfig = await this.$configs.getAppConfig();
+      let newTab = "https://" + subdomain + ".bodblog." + appConfig.bodblog_domain;
+      if (this.authenticated) {
+        newTab = newTab + "/login";
+      }
+      window.open(newTab, "_blank");
     },
-    watch: {
-        // Everytime the route changes, check for auth status
-        $route: "isAuthenticated"
-    },
-    methods: {
-        getBlogUrl() {
-            const subdomain = window.location.host.split(".")[0];
-            var newTab =
-                "https://" + subdomain + ".bodblog." + config.bodblog_domain;
-            if (this.authenticated) {
-                newTab = newTab + "/login";
+    async isAuthenticated() {
+      if (this.$auth) {
+        this.authenticated = await this.$auth.isAuthenticated();
+        if (this.authenticated) {
+          this.token = await this.$auth.getIdToken();
+          if (this.token) {
+            const payload = JSON.parse(atob(this.token.split(".")[1]));
+            if (payload.idp) {
+              this.loggedIn = true;
             }
-            window.open(newTab, "_blank");
-        },
-        async isAuthenticated() {
-            if (this.$auth) {
-                this.authenticated = await this.$auth.isAuthenticated();
-                if (this.authenticated) {
-                    this.token = await this.$auth.getIdToken();
-                    if (this.token) {
-                        const payload = JSON.parse(atob(this.token.split(".")[1]));
-                        if (payload.idp) {
-                            this.loggedIn = true;
-                        }
-                        this.groups = payload.groups;
-                        this.groups.forEach(grp=>{
-                            if (grp.includes('Customer')) {
-                                this.loggedIn = true;
-                                this.cardOnFile = true;
-                            }
-                        });
-                        // if (payload.groups.includes("Customer")) {
-                        //     this.loggedIn = true;
-                        //     this.cardOnFile = true;
-                        // }
-                        this.numFreebiesAvailable = payload.numFreebiesAvailable;
-                    }
-                } else {
-                    this.loggedIn = false;
-                    this.cardOnFile = false;
-                }
-            } else {
-                this.authenticated = false;
-                this.loggedIn = false;
-                this.cardOnFile = false;
-            }
-        },
-        async logout() {
-            await this.$auth.signOut();
-            await this.isAuthenticated();
-        },
-        homeButton() {
-            window.location.href = "/";
+            this.groups = payload.groups;
+            this.groups.forEach((grp) => {
+              if (grp.includes("Customer")) {
+                this.loggedIn = true;
+                this.cardOnFile = true;
+              }
+            });
+            this.numFreebiesAvailable = payload.numFreebiesAvailable;
+          }
+        } else {
+          this.loggedIn = false;
+          this.cardOnFile = false;
         }
-    }
+      } else {
+        this.authenticated = false;
+        this.loggedIn = false;
+        this.cardOnFile = false;
+      }
+    },
+    async logout() {
+      await this.$auth.signOut();
+      await this.isAuthenticated();
+    },
+    homeButton() {
+      window.location.href = "/";
+    },
+  },
 };
 </script>
 
