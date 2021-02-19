@@ -6,6 +6,7 @@ dist
 *.local
 *.env
 *.tfvars
+serverless/.env.json
 
 # Log files
 npm-debug.log*
