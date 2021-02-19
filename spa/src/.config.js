@@ -3,9 +3,9 @@ export default {
 	bod_api: process.env.VUE_APP_BOD_API,
 	oidc: {
 		issuer: process.env.VUE_APP_ISSUER,
-		client_id: process.env.VUE_APP_CLIENT_ID,
-		redirect_uri: process.env.VUE_APP_REDIRECT_URI,
-		scope: "openid profile email prospect"
+		clientId: process.env.VUE_APP_CLIENT_ID,
+		redirectUri: process.env.VUE_APP_REDIRECT_URI,
+		scopes: ["openid", "profile", "email", "prospect"]
 	},	
 	social: {
 		fb: process.env.VUE_APP_FB_ID

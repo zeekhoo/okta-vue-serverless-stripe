@@ -139,14 +139,15 @@
 <script>
 import axios from "axios";
 
-import OktaAuth from "@okta/okta-auth-js";
-import oktaAuthConfig from "@/.config.js";
+// import OktaAuth from "@okta/okta-auth-js";
+// import oktaAuthConfig from "@/.config.js";
 
 export default {
     name: "register",
     data: () => ({
+        appConfig: null,
         registering: false,
-        user: false,
+        user: undefined,
         valid: true,
         firstName: "",
         lastName: "",
@@ -200,15 +201,16 @@ export default {
         messages: null
     }),
     props: ["noMorePreviews"],
-    mounted: function() {
-        this.authClient = new OktaAuth({
-            url:
-                oktaAuthConfig.base_url ||
-                oktaAuthConfig.oidc.issuer.split("oauth2")[0],
-            issuer: oktaAuthConfig.oidc.issuer,
-            clientId: oktaAuthConfig.oidc.client_id,
-            redirectUri: oktaAuthConfig.oidc.redirect_uri
-        });
+    mounted: async function() {
+        this.appConfig = await this.$configs.getAppConfig();
+        // this.authClient = new OktaAuth({
+        //     url:
+        //         this.appConfig.base_url ||
+        //         this.appConfig.oidc.issuer.split("oauth2")[0],
+        //     issuer: this.appConfig.oidc.issuer,
+        //     clientId: this.appConfig.oidc.clientId,
+        //     redirectUri: this.appConfig.oidc.redirectUri
+        // });
     },
     watch: {
         email: function() {
@@ -228,17 +230,17 @@ export default {
                     goals: this.goals,
                     zip: this.zip
                 };
-                if (oktaAuthConfig.isRunningLocal)
-                    body.mocksubdomain = oktaAuthConfig.mock_subdomain;
+                if (this.appConfig.isRunningLocal)
+                    body.mocksubdomain = this.appConfig.mock_subdomain;
 
                 const accessToken = await this.$auth.getAccessToken();
-                if (this.user != undefined) {
+                if (this.user) {
                     const sub = this.user.sub;
                     axios({
                         method: "post",
                         url:
-                            oktaAuthConfig.bod_api +
-                            "/unidemo/public/bod/register/" +
+                            this.appConfig.bod_api +
+                            "/bod/api/register/" +
                             sub,
                         headers: {
                             Accept: "application/json",
@@ -254,8 +256,8 @@ export default {
                     axios({
                         method: "post",
                         url:
-                            oktaAuthConfig.bod_api +
-                            "/unidemo/public/bod/signup",
+                            this.appConfig.bod_api +
+                            "/bod/api/signup",
                         data: body
                     })
                         .then(res => {
@@ -273,12 +275,10 @@ export default {
             }
         },
         getWithRedirect(sessionToken) {
-            let referrerPath = "/";
             if (window.location.pathname) {
-                referrerPath = window.location.pathname;
                 localStorage.setItem("referrerPath", window.location.pathname);
             }
-            let scp = oktaAuthConfig.oidc.scope.split(" ");
+            let scp = this.appConfig.oidc.scopes;
             const index = scp.indexOf("prospect");
             if (index > -1) scp.splice(index, 1);
             scp.push("customer");
@@ -290,11 +290,15 @@ export default {
             if (sessionToken != undefined) {
                 requestOptions.sessionToken = sessionToken;
             }
-            this.authClient.token.getWithRedirect(requestOptions);
+            this.$auth.token.getWithRedirect(requestOptions);
         }
     },
     async created() {
-        this.user = await this.$auth.getUser();
+        try {
+            this.user = await this.$auth.getUser();
+        } catch {
+            this.user = false;
+        }
         if (this.user) {
             this.email = this.user.email;
             this.firstName = this.user.given_name;

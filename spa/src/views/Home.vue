@@ -13,10 +13,8 @@
 </template>
 
 <script>
-// @ is an alias to /src
 import WelcomeComponent from '@/views/Welcome.vue'
 import BrowseComponent from '@/views/Browse.vue'
-import AuthJS from '@okta/okta-auth-js';
 import axios from 'axios';
 
 export default {
@@ -27,14 +25,20 @@ export default {
   },
   data: function () {
     return {
-      claims: '',
+      claims: false,
       ready: false
     }
   },
-  created () { this.setup() },
+  created () { 
+    this.setup();
+  },
   methods: {
     async setup () {
-      this.claims = await this.$auth.getUser()
+      try {
+        this.claims = await this.$auth.getUser();
+      } catch {
+        this.claims = false;
+      }
       if (!this.claims) {
             const config = await this.$configs.getConfig();
             const url = config.issuer.split('/oauth2')[0] + '/api/v1/sessions/me';
@@ -46,13 +50,19 @@ export default {
                 console.log(e);
             }
             if (exists) {
-                this.$auth.loginRedirect("/", {
-                    scopes: config.scope.replace('prospect', 'customer').split(' ')
-                });
+                this.$auth.signInWithRedirect({
+                  originalUri: "/",
+                  scopes: config.scopes.map(scp=>{
+                      if (scp == 'prospect') {
+                        return 'customer';
+                      } else {
+                        return scp
+                      }
+                    })
+                });                  
             } else {
                 this.ready = true
             }
-
       }
     }
   }    

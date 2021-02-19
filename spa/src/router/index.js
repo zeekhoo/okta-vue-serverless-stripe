@@ -8,15 +8,12 @@ import SignupComponent from '@/components/Signup'
 import RegisterComponent from '@/components/Register'
 import HelpComponent from '@/views/Help.vue'
 
-var subdomain = window.location.host.split('.')[0]
-var isRunningLocal = false
-if (/^localhost:\d{4}$/.test(subdomain)) {
-    isRunningLocal = true
-}
-
 import configs from '@/plugins/configs'
 
-import Auth from '@okta/okta-vue'
+import OktaVue from '@okta/okta-vue'
+// import { LoginCallback } from '@okta/okta-vue'
+import { OktaAuth } from '@okta/okta-auth-js'
+import OAuthCallback from '@/components/OAuthCallback'
 import oktaAuthConfig from '@/.config.js'
 
 Vue.use(Router)
@@ -41,8 +38,8 @@ const router = new Router({
             component: RegisterComponent
         },
         {
-            path: '/implicit/callback',
-            component: Auth.handleCallback()
+            path: '/login/callback',
+            component: OAuthCallback
         },
         {
             path: '/player',
@@ -61,17 +58,24 @@ Vue.use(configs, oktaAuthConfig);
 const onAuthRequired = async (from, to, next) => {
     if (initAuth) {
         initAuth = false
-        const config = await Vue.prototype.$configs.getConfig();
-        Vue.use(Auth, config)
-    }
+        const config = await Vue.prototype.$configs.getConfig()
+        const oktaAuth = new OktaAuth(config)
 
-    if (from.matched.some(record => record.meta.requiresAuth) && !(await Vue.prototype.$auth.isAuthenticated())) {
-        next({
-            path: '/login'
+        Vue.use(OktaVue, {
+            oktaAuth,
+            onAuthRequired: (oktaAuth) => {
+                router.push({ path: '/login' })
+            }
         })
-    } else {
-        next()
     }
+    next();
+    // if (from.matched.some(record => record.meta.requiresAuth) && !(await Vue.prototype.$auth.isAuthenticated())) {
+    //     next({
+    //         path: '/login'
+    //     })
+    // } else {
+    //     next()
+    // }
 }
 
 router.beforeEach(onAuthRequired)

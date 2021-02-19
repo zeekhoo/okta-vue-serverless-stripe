@@ -53,6 +53,8 @@ export default {
     data: function() {
         return {
             authenticated: false,
+            token: null,
+            groups: null,
             loggedIn: false,
             cardOnFile: false,
             footer: false,
@@ -99,18 +101,24 @@ export default {
             if (this.$auth) {
                 this.authenticated = await this.$auth.isAuthenticated();
                 if (this.authenticated) {
-                    const token = await this.$auth.getIdToken();
-                    if (token) {
-                        const payload = JSON.parse(atob(token.split(".")[1]));
+                    this.token = await this.$auth.getIdToken();
+                    if (this.token) {
+                        const payload = JSON.parse(atob(this.token.split(".")[1]));
                         if (payload.idp) {
                             this.loggedIn = true;
                         }
-                        if (payload.groups.includes("Customer")) {
-                            this.loggedIn = true;
-                            this.cardOnFile = true;
-                        }
-                        this.numFreebiesAvailable =
-                            payload.numFreebiesAvailable;
+                        this.groups = payload.groups;
+                        this.groups.forEach(grp=>{
+                            if (grp.includes('Customer')) {
+                                this.loggedIn = true;
+                                this.cardOnFile = true;
+                            }
+                        });
+                        // if (payload.groups.includes("Customer")) {
+                        //     this.loggedIn = true;
+                        //     this.cardOnFile = true;
+                        // }
+                        this.numFreebiesAvailable = payload.numFreebiesAvailable;
                     }
                 } else {
                     this.loggedIn = false;
@@ -123,7 +131,7 @@ export default {
             }
         },
         async logout() {
-            await this.$auth.logout();
+            await this.$auth.signOut();
             await this.isAuthenticated();
         },
         homeButton() {

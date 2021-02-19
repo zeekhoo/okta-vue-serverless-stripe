@@ -42,7 +42,7 @@ export default {
                 {
                     "label": "Create App",
                     "steps": "Crete an App of Type SPA. Assign the 'Everyone' group to it",
-                    "steps2": "Set redirect_uri = 'https://{{udp_subdomain}}.bod.unidemo.online/implicit/callback'"
+                    "steps2": "Set redirect_uri = 'https://{{udp_subdomain}}.bod.unidemo.online/login/callback'"
                 },
                 {
                     "label": "Add CORS",

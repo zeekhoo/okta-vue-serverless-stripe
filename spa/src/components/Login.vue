@@ -19,23 +19,27 @@
 import OktaSignIn from "@okta/okta-signin-widget";
 import "@okta/okta-signin-widget/dist/css/okta-sign-in.min.css";
 
-import authConfig from '@/.config.js'
+// import authConfig from '@/.config.js'
 
 export default {
   name: 'Login',
   mounted: function () {
-    this.$nextTick(function () {
-      var scp = authConfig.oidc.scope.split(' ')
+    this.$nextTick(async function () {
+      const authConfig = await this.$configs.getConfig();
+      const appConfig = await this.$configs.getAppConfig();
+
+      var scp = authConfig.scopes;
       const index = scp.indexOf('prospect')
       if(index>-1) scp.splice(index, 1)
       scp.push('customer')
       const config = {
-        baseUrl: authConfig.base_url || authConfig.oidc.issuer.split('oauth2')[0],
-        clientId: authConfig.oidc.client_id,
-        redirectUri: authConfig.oidc.redirect_uri,
+        baseUrl: authConfig.base_url || authConfig.issuer.split('oauth2')[0],
+        clientId: authConfig.clientId,
+        redirectUri: authConfig.redirectUri,
         authParams: {
-          responseType: ['id_token', 'token'],
-          issuer: authConfig.oidc.issuer,
+          responseType: ['code'],
+          pkce: true,
+          issuer: authConfig.issuer,
           scopes: scp,
           display: 'page'
         },
@@ -48,7 +52,7 @@ export default {
           }
         },
         idps: [
-          {'type': 'FACEBOOK', id: authConfig.social.fb}
+          {'type': 'FACEBOOK', id: appConfig.social.fb}
         ]
       }
 

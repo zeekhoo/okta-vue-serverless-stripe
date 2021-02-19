@@ -8,8 +8,8 @@
     "build-stage": "vue-cli-service build --mode stage"
   },
   "dependencies": {
-    "@okta/okta-signin-widget": "^3.8.1",
-    "@okta/okta-vue": "^1.3.0",
+    "@okta/okta-signin-widget": "^4.5.0",
+    "@okta/okta-vue": "^3.0.0",
     "atob": "^2.1.2",
     "axios": "^0.21.1",
     "json-parser": "^1.1.5",

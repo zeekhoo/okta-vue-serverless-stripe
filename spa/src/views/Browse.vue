@@ -160,7 +160,11 @@ export default {
     },
     methods: {
         async setup() {
-            this.claims = await this.$auth.getUser();
+            try {
+                this.claims = await this.$auth.getUser();
+            } catch {
+                this.claims = "";
+            }
             this.cards.map(card=>{
                 let rando = this.randomIntFromInterval(0, this.vids.length - 1)
                 let youtubeURL = this.vids[rando].youtubeURL

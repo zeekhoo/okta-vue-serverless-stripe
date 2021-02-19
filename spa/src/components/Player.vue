@@ -37,7 +37,7 @@
                         <v-alert v-model="showAlert" :type="alertType" dismissible>{{alertMessage}}</v-alert>
                         <v-img
                             v-if="!playVid"
-                            v-on:click.native="preview()"
+                            v-on:click.native="preview(vid.src)"
                             :src="vid.src"
                             height="550px"
                         >
@@ -80,14 +80,15 @@ import playButton from "@/assets/img/Play.png";
 import SignupComponent from "@/components/Signup.vue";
 import RegisterComponent from "@/components/Register.vue";
 import VideoPlayer from "@/components/VideoPlayer.vue";
-import oktaAuthConfig from "@/.config.js";
+// import oktaAuthConfig from "@/.config.js";
 import axios from "axios";
-import AuthJS from "@okta/okta-auth-js";
+// import AuthJS from "@okta/okta-auth-js";
 
 export default {
     name: "Player",
     data() {
         return {
+            appConfig: null,
             authJs: null,
             user: false,
             payload: false,
@@ -124,7 +125,7 @@ export default {
         vid: Object
     },
     methods: {
-        async preview() {
+        async preview(src) {
             this.waiting = true;
             if (!this.$root.$children[0].authenticated) {
                 this.dialog = true;
@@ -135,8 +136,8 @@ export default {
                     atob(access_token.split(".")[1])
                 );
                 let mock = "none";
-                if (oktaAuthConfig.isRunningLocal)
-                    mock = oktaAuthConfig.mock_subdomain;
+                if (this.appConfig.isRunningLocal)
+                    mock = this.appConfig.mock_subdomain;
 
                 if (!b_access_token.scp.includes("customer")) {
                     if (this.$root.$children[0].numFreebiesAvailable <= 0) {
@@ -147,12 +148,13 @@ export default {
                         return;
                     }
                 }
-
+                const videoId = src.substring(src.lastIndexOf('/') + 1);
+                console.log('videoId = ', videoId);
                 axios({
                     method: "get",
                     url:
-                        oktaAuthConfig.bod_api +
-                        "/unidemo/public/bod/video-player/play",
+                        this.appConfig.bod_api +
+                        "/bod/api/video/" + videoId,
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json",
@@ -177,10 +179,10 @@ export default {
                         this.$root.$children[0].numFreebiesAvailable =
                             this.$root.$children[0].numFreebiesAvailable -
                             1;
-                        this.authJs.token
+                        this.$auth.token
                             .renew(this.tokenToRenew)
                             .then(res => {
-                                this.authJs.tokenManager.add(
+                                this.$auth.tokenManager.add(
                                     "idToken",
                                     res
                                 );
@@ -199,17 +201,23 @@ export default {
         }
     },
     async created() {
-        const oktaAuth = new AuthJS({
-            url: oktaAuthConfig.oidc.issuer.split("/oauth2/")[0],
-            issuer: oktaAuthConfig.oidc.issuer,
-            clientId: oktaAuthConfig.oidc.client_id,
-            redirectUri: oktaAuthConfig.oidc.redirect_uri
-        });
-        const tokenToRenew = await oktaAuth.tokenManager.get("idToken");
+        this.appConfig = await this.$configs.getAppConfig();
+        // const oktaAuth = new AuthJS({
+        //     url: this.appConfig.oidc.issuer.split("/oauth2/")[0],
+        //     issuer: this.appConfig.oidc.issuer,
+        //     clientId: this.appConfig.oidc.clientId,
+        //     redirectUri: this.appConfig.oidc.redirectUri
+        // });
+        // this.authJs = oktaAuth;
+        const tokenToRenew = await this.$auth.tokenManager.get("idToken");
         this.tokenToRenew = tokenToRenew;
-        this.authJs = oktaAuth;
 
-        this.user = await this.$auth.getUser();
+        try {
+            this.user = await this.$auth.getUser();
+        } catch(e) {
+            this.user = false;
+        }
+
         const accessTokenPayload = await this.$auth.getAccessToken();
         if (accessTokenPayload) {
             this.payload = JSON.parse(atob(accessTokenPayload.split(".")[1]));
