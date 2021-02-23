@@ -13,7 +13,9 @@
     "atob": "^2.1.2",
     "aws-auth-policy": "^0.1.0",
     "axios": "^0.21.1",
-    "basic-auth-token": "^0.4.2"
+    "basic-auth-token": "^0.4.2",
+    "password-generator": "^2.3.2",
+    "stripe": "^8.137.0"
   },
   "devDependencies": {
     "serverless-offline": "^6.8.0"

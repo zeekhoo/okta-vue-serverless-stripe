@@ -9,10 +9,11 @@ export default {
 	},	
 	social: {
 		fb: process.env.VUE_APP_FB_ID
-	},
+  },
 	prospect_group_id: process.env.VUE_APP_PROSPECT_GROUP_ID,
 	customer_group_id: process.env.VUE_APP_CUSTOMER_GROUP_ID,
-	client2_id: process.env.VUE_APP_CLIENT2_ID,
+  client2_id: process.env.VUE_APP_CLIENT2_ID,
+  stripe_publishable_key: process.env.VUE_APP_STRIPE_PUBLISHABLE_KEY,  
 	bodblog_domain: "unidemo.live",
 	mock_subdomain: process.env.VUE_APP_MOCK
 }

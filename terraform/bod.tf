@@ -1,11 +1,14 @@
 variable "org_name" {}
 variable "api_token" {}
 variable "base_url" {}
-variable "demo_app_name" {}
-variable "udp_subdomain" {}
+variable "demo_app_name" {
+  default = "bod"
+}
+variable "udp_subdomain" {
+  default = "local"
+}
 variable "sleep" {
   default = 20
-
 }
 locals {
     app_domain = "${var.udp_subdomain}.${var.demo_app_name}.unidemo.online"
@@ -47,6 +50,7 @@ resource "okta_app_oauth" "mlmDemoApp" {
   grant_types    = ["authorization_code", "refresh_token"]
   redirect_uris  = ["https://${local.app_domain}/login/callback","http://localhost:8080/login/callback"]
   post_logout_redirect_uris = ["https://${local.app_domain}","http://localhost:8080"]
+  login_uri      = "https://${local.app_domain}/login/callback"
   response_types = ["code"]
   issuer_mode    = "ORG_URL"
   groups         = [data.okta_group.all.id]
@@ -103,12 +107,61 @@ resource "okta_auth_server_claim" "groupsClaim" {
   value             = ".*"
   auth_server_id    = okta_auth_server.bodUnidemo.id
 }
+resource "okta_auth_server_claim" "groupsResourceClaim" {
+  name              = "groups"
+  status            = "ACTIVE"
+  claim_type        = "RESOURCE"
+  value_type        = "GROUPS"
+  group_filter_type = "REGEX"
+  value             = ".*"
+  auth_server_id    = okta_auth_server.bodUnidemo.id
+}
 resource "okta_auth_server_claim" "numFreebiesAvailableClaim" {
   name           = "numFreebiesAvailable"
   status         = "ACTIVE"
   claim_type     = "IDENTITY"
   value_type     = "EXPRESSION"
   value          = "user.numFreebiesAvailable"
+  auth_server_id = okta_auth_server.bodUnidemo.id
+}
+resource "okta_auth_server_claim" "numFreebiesAvailableResourceClaim" {
+  name           = "numFreebiesAvailable"
+  status         = "ACTIVE"
+  claim_type     = "RESOURCE"
+  value_type     = "EXPRESSION"
+  value          = "user.numFreebiesAvailable"
+  auth_server_id = okta_auth_server.bodUnidemo.id
+}
+resource "okta_auth_server_claim" "stripeCustomerIdClaim" {
+  name           = "stripeCustomerId"
+  status         = "ACTIVE"
+  claim_type     = "IDENTITY"
+  value_type     = "EXPRESSION"
+  value          = "user.stripeCustomerId"
+  auth_server_id = okta_auth_server.bodUnidemo.id
+}
+resource "okta_auth_server_claim" "stripeCustomerIdResourceClaim" {
+  name           = "stripeCustomerId"
+  status         = "ACTIVE"
+  claim_type     = "RESOURCE"
+  value_type     = "EXPRESSION"
+  value          = "user.stripeCustomerId"
+  auth_server_id = okta_auth_server.bodUnidemo.id
+}
+resource "okta_auth_server_claim" "goalsClaim" {
+  name           = "goals"
+  status         = "ACTIVE"
+  claim_type     = "IDENTITY"
+  value_type     = "EXPRESSION"
+  value          = "user.goals"
+  auth_server_id = okta_auth_server.bodUnidemo.id
+}
+resource "okta_auth_server_claim" "goalsResourceClaim" {
+  name           = "goals"
+  status         = "ACTIVE"
+  claim_type     = "RESOURCE"
+  value_type     = "EXPRESSION"
+  value          = "user.goals"
   auth_server_id = okta_auth_server.bodUnidemo.id
 }
 resource "okta_auth_server_policy" "bodUnidemoDefaultPolicy" {
@@ -153,6 +206,13 @@ resource "okta_user_schema" "addnumFreebiesAvailable" {
   type       = "number"
   master     = "PROFILE_MASTER"
   depends_on = [okta_user_schema.addWorkoutGoalsAttribute]
+}
+resource "okta_user_schema" "stripeCustomerId" {
+  index      = "stripeCustomerId"
+  title      = "Stripe CustomerId"
+  type       = "string"
+  master     = "PROFILE_MASTER"
+  depends_on = [okta_user_schema.addnumFreebiesAvailable]
 }
 resource "okta_trusted_origin" "bodUnidemo" {
   name   = local.app_domain

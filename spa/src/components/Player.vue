@@ -6,6 +6,7 @@
   opacity: 0.5;
   position: absolute;
   width: 100%;
+  height: 100%;
 }
 </style>
 
@@ -23,10 +24,13 @@
         </v-card>
       </v-dialog>
 
-      <v-dialog v-model="dialog2" width="700">
+      <v-dialog v-model="dialog2" :width="dialogWidth">
         <v-card>
           <v-container>
-            <RegisterComponent :noMorePreviews="noMorePreviews" />
+            <RegisterComponent 
+              :noMorePreviews="noMorePreviews"
+              >
+            </RegisterComponent>
           </v-container>
         </v-card>
       </v-dialog>
@@ -42,12 +46,11 @@
               v-on:click.native="preview(vid.src)"
               :src="vid.src"
               height="550px"
-            >
+              >
               <v-expand-transition>
                 <div v-if="hover">
                   <div
                     class="d-flex transition-fast-in-fast-out darken-2 v-card--reveal display-3 white--text"
-                    style="height: 100%"
                   >
                     {{ clickToWatch }}
                     <v-progress-circular
@@ -92,7 +95,6 @@ export default {
   name: "Player",
   data() {
     return {
-      // user: false,
       payload: false,
       claims: [],
       image: {
@@ -108,6 +110,7 @@ export default {
       tokenToRenew: null,
       waiting: false,
       noMorePreviews: undefined,
+      dialogWidth: 600
     };
   },
   computed: {
@@ -198,12 +201,6 @@ export default {
   async mounted() {
     const tokenToRenew = await this.$auth.tokenManager.get("idToken");
     this.tokenToRenew = tokenToRenew;
-
-    // try {
-    //   this.user = await this.$auth.getUser();
-    // } catch (e) {
-    //   this.user = false;
-    // }
 
     const accessTokenPayload = await this.$auth.getAccessToken();
     if (accessTokenPayload) {

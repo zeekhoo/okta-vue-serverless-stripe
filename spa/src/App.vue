@@ -23,7 +23,7 @@
         <v-btn flat>Logout</v-btn>
       </router-link>
 
-      <v-btn flat @click="getBlogUrl()" target="_blank">Blog</v-btn>
+      <v-btn flat @click="getBlogUrl()" v-if="linkBlog" target="_blank">Blog</v-btn>
 
     </v-toolbar>
 
@@ -48,11 +48,14 @@ export default {
   name: "app",
   data: function () {
     return {
+      appConfig: null,
+      linkBlog: false,
       authenticated: false,
       token: null,
       groups: null,
       loggedIn: false,
       cardOnFile: false,
+      stripeCustomerId: null,
       footer: false,
       numFreebiesAvailable: null,
     };
@@ -74,18 +77,22 @@ export default {
       return this.numFreebiesAvailable <= 0 ? 0 : this.numFreebiesAvailable;
     },
   },
-  created() {
+  async created() {
+    this.appConfig = await this.$configs.getAppConfig();
+    this.linkBlog = this.appConfig.client2_id != undefined;
     this.isAuthenticated();
   },
   watch: {
     // Everytime the route changes, check for auth status
     $route: "isAuthenticated",
   },
+  async updated() {
+    this.isAuthenticated();
+  },
   methods: {
     async getBlogUrl() {
       const subdomain = window.location.host.split(".")[0];
-      const appConfig = await this.$configs.getAppConfig();
-      let newTab = "https://" + subdomain + ".bodblog." + appConfig.bodblog_domain;
+      let newTab = "https://" + subdomain + ".bodblog." + this.appConfig.bodblog_domain;
       if (this.authenticated) {
         newTab = newTab + "/login";
       }
@@ -101,14 +108,26 @@ export default {
             if (payload.idp) {
               this.loggedIn = true;
             }
+            this.stripeCustomerId = payload.stripeCustomerId;
             this.groups = payload.groups;
             this.groups.forEach((grp) => {
               if (grp.includes("Customer")) {
                 this.loggedIn = true;
-                this.cardOnFile = true;
+
+                // If has Stripe Integration
+                if (this.appConfig.stripe_publishable_key && this.appConfig.stripe_publishable_key.length > 0) {
+                  // Has Stripe CustomerId means payment has been made.
+                  if (this.stripeCustomerId) {
+                    this.cardOnFile = true;
+                  }
+                } else {
+                  // No Stripe integration. Use bogus Payments form.
+                  this.cardOnFile = true;
+                }
               }
             });
             this.numFreebiesAvailable = payload.numFreebiesAvailable;
+
           }
         } else {
           this.loggedIn = false;

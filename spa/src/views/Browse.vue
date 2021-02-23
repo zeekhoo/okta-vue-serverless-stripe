@@ -46,8 +46,7 @@
                   <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn v-on:click="openPlayer(card)">
-                      <span v-if="!fullVid" class="mr-2">Preview</span>
-                      <span v-if="fullVid" class="mr-2">Watch</span>
+                      <span class="mr-2">{{buttonLabel}}</span>
                     </v-btn>
                   </v-card-actions>
                 </v-card>
@@ -69,7 +68,6 @@ export default {
   data: function () {
     return {
       claims: "",
-      fullVid: false,
       playerMode: false,
       vidSrc: null,
       vids: [
@@ -152,10 +150,10 @@ export default {
   created() {
     this.setup();
   },
-  updated: function () {
-    this.$nextTick(async function () {
-      this.fullVid = this.$root.$children[0].cardOnFile;
-    });
+  computed: {
+    buttonLabel() {
+      return this.$root.$children[0].cardOnFile ? 'Watch' : 'Preview';
+    }
   },
   methods: {
     async setup() {

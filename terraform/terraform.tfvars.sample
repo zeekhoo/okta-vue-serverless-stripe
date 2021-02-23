@@ -1,5 +1,3 @@
 org_name="dev-111111"
 base_url="oktapreview.com"
 api_token="your-okta-api-token-secret"
-demo_app_name="bod"
-udp_subdomain="local"

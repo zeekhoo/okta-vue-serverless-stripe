@@ -3,6 +3,8 @@ import WellKnownConfigs from '@/services/api/WellKnownConfigs'
 class Configs {
   constructor(config) {
     this.appConfig = config;
+    if (!this.appConfig.oidc.redirectUri) this.appConfig.oidc.redirectUri = 'http://localhost:8080/login/callback'
+    if (!this.appConfig.bod_api) this.appConfig.bod_api = 'http://localhost:3000/dev'
 
     this.subdomain = window.location.host.split('.')[0];
     this.isRunningLocal = (/^localhost:\d{4}$/.test(this.subdomain));

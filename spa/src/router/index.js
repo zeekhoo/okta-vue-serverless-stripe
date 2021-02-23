@@ -6,6 +6,7 @@ import LoginComponent from '@/components/Login'
 import PlayerComponent from '@/components/Player'
 import SignupComponent from '@/components/Signup'
 import RegisterComponent from '@/components/Register'
+import PaymentSuccess from '@/components/PaymentSuccess'
 
 import configs from '@/plugins/configs'
 
@@ -43,6 +44,10 @@ const router = new Router({
     path: '/player',
     component: PlayerComponent
   },
+  {
+    path: '/payment-success',
+    component: PaymentSuccess
+  }
   ]
 })
 

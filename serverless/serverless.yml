@@ -23,6 +23,8 @@ provider:
     API_KEY: ${self:custom.env.API_KEY}
     PROSPECT_GROUP_ID: ${self:custom.env.PROSPECT_GROUP_ID}
     CUSTOMER_GROUP_ID: ${self:custom.env.CUSTOMER_GROUP_ID}
+    STRIPE_SECRET_KEY: ${self:custom.env.STRIPE_SECRET_KEY}
+    STRIPE_PRICE_ID: ${self:custom.env.STRIPE_PRICE_ID}
 
 functions:
   # Authorizer
@@ -36,10 +38,10 @@ functions:
           method: post
           cors: true
   register:
-    handler: src/register.handler
+    handler: src/subscribe.handler
     events:
       - http:
-          path: bod/api/register/{userId}
+          path: bod/api/subscribe/{userId}
           method: post
           cors: true
           authorizer:
@@ -57,4 +59,10 @@ functions:
             name: oktaAuth
             identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
             resultTtlInSeconds: 0
+  webhook:
+    handler: src/stripe.webhook
+    events:
+      - http:
+          path: stripe/webhook
+          method: post
 
