@@ -1,5 +1,0 @@
-client_id=${client_id}
-issuer=https://${domain}.com/oauth2/${auth_server_id}
-setting.prospect_group_id=${prospect_group_id}
-setting.customer_group_id=${customer_group_id}
-setting.client2_id=${client2_id}

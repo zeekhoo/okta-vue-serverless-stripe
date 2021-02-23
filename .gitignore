@@ -5,7 +5,8 @@ dist
 # local env files
 *.local
 *.env
-
+*.tfvars
+*.env.json
 
 # Log files
 npm-debug.log*
@@ -20,4 +21,9 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+# terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate*
 

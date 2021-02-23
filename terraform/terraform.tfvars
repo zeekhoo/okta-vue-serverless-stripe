@@ -1,5 +1,0 @@
-org_name="dev-111111"
-base_url="oktapreview.com"
-api_token="my-super-secret-api-token"
-demo_app_name="bod"
-udp_subdomain="foo"
