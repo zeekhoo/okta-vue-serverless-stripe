@@ -1,10 +1,12 @@
 # About
 This demo showcaes key concepts in protecting API resources using Okta's [API Access Management](https://developer.okta.com/docs/concepts/api-access-management/). 
 
-A highly stylized sample app (in the [spa](/spa) folder) is used to drive the demo: A make believe e-commerce site that incorporates the following functionality:
+A highly stylized sample SPA is provided(in the [spa](/spa) folder) to drive the demo. This make believe e-commerce website incorporates the following functionality:
 * Browse anonymously
 * Anonymous -> Known user with low firction "signup"
-* Site contents protected until a user "registers" and provides payment.
+* Site contents protected until a user "registers" and provides payment.  
+
+The SPA's interaction with the resource server (in the [serverless](/serverless) folder) are the main demo points showcasing how Okta protects API resources with OAuth 2.0.
 
 ### 🎁 Bonus 🎁
 All the identity functionality is powered by Okta. And as a bonus, the demo also provides a sample integration with [Stripe Checkout](https://stripe.com/docs/payments/checkout), so we get to see a sample integration between the identity provider (Okta) and payments platform (Stripe).
@@ -19,19 +21,19 @@ All the identity functionality is powered by Okta. And as a bonus, the demo also
 
 ## Use-cases
 ### 1. "Signup" a user with Email only
-A visitor to the website (the demo SPA) browses around but cannot access content and is prompted to sign-up instead. The sign-up process only requires the visitor to provide an email. The Sign Up button makes a POST request to the ['signup.js'](/serverless/src/signup.js) Lambda function, which creates the user in Okta, logs the user in and returns an Okta [sessionToken](https://developer.okta.com/docs/reference/api/sessions/#session-token). The SPA uses the `sessionToken` to [start an Okta session](https://developer.okta.com/docs/guides/session-cookie/overview/#retrieving-a-session-cookie-via-openid-connect-authorization-endpoint) using the [/authorize](https://developer.okta.com/docs/reference/api/oidc/#authorize) endpoint to retrieve an [id_token](https://developer.okta.com/docs/reference/api/oidc/#id-token) and [access_token](https://developer.okta.com/docs/reference/api/oidc/#access-token) for the SPA.  
+A visitor to the website (the demo SPA) browses around but cannot access content and is prompted to sign-up instead. The sign-up process only requires the visitor to provide an email. The "Sign Up" button makes request to the [signup.js](/serverless/src/signup.js) Lambda function, which creates the user in Okta, logs the user in and returns an Okta [sessionToken](https://developer.okta.com/docs/reference/api/sessions/#session-token). The SPA uses the sessionToken to [start an Okta session](https://developer.okta.com/docs/guides/session-cookie/overview/#retrieving-a-session-cookie-via-openid-connect-authorization-endpoint) by using the [/authorize](https://developer.okta.com/docs/reference/api/oidc/#authorize) endpoint to retrieve an [id_token](https://developer.okta.com/docs/reference/api/oidc/#id-token) and an [access_token](https://developer.okta.com/docs/reference/api/oidc/#access-token) for the SPA.  
 
-It is this `access_token` that prevents unauthorized access to all the APIs going forward.
+Going forward, all API calls are protected by the `access_token` retrieved above.
 
 ### 2. __Progressive Profiling__
 __"Progress" the "prospect" user (we only know their email) to a "customer" by collecting preferences and most importantly, payment info.__  
 
-By providing email, the visitor is able to access limited content. But in order to gain full access of the site, they are prompted to subscribe to the service by providing payment (via Stripe). A registration form collects information from the visitor to complete their profile, such as full name and preferences. The Submit button makes a POST request to the ['subscribe.js'](/serverless/src/subscribe.js) Lambda function, which forwards the profile updates to Okta. It also initiates a Stripe Checkout Session and returns the Session Id that's needed by the SPA in order to redirect to Stripe Checkout (More on this later).
+By providing email, the website allows the visitor is see limited content. But in order to gain full access of the site, they are prompted to subscribe to the service by providing payment (via Stripe). A registration form collects information from the visitor to complete their profile (e.g. by entering full name and selecting preferences). And the "Submit" button makes a request to the [subscribe.js](/serverless/src/subscribe.js) Lambda function, which forwards the profile updates to Okta. It also initiates a Stripe Checkout Session and returns the "session id" that's required for the SPA to redirect to Stripe Checkout (More on this later).
 
 *AWS API Gateway is configured with the custom Lambda authorizer [auth.js](/serverless/src/auth.js) to prevent access to the API unless the `access_token` retrieved previously is present in the request.*
 
 ### 3. Protect APIs with scoped access_tokens
-The user accesseses site contents by making API calls. While each call requires an `access_token`, the resources' API also looks at claims in the token to determine the level of access. Okta is configured to return token claims that describe whether or not the user is a "prospect" or "customer", so the [video.js](/serverless/src/video.js) Lambda function already knows the user context, and returns different results based on that.
+The user accesseses site contents by making API calls. While each call requires an `access_token`, the resources' API also looks at claims in the token to determine the level of access. Okta is configured to return token claims that describe whether or not the user is a "prospect" or "customer", so the [video.js](/serverless/src/video.js) Lambda function immediately knows of the user context without having to make additional lookups to the user-store. In other words, based on the token's claims, the API returns different results.
 
 ---
 
@@ -55,10 +57,16 @@ Now run terraform init
 ```
 terraform init
 ```
+Then "plan"
+```
+terraform plan
+```
 Then apply
 ```
 terraform apply
 ```
+Enter "yes" at the prompt.
+
 > Take a look using the Okta Admin UI after this is done and notice the resources that were provisioned: 
 > * A couple custom profile attributes
 > * A couple groups
@@ -68,7 +76,8 @@ terraform apply
 ### 2. Populate environment variables.
 At the completion of `terraform apply`, you'll see some *outputs* for ids of resources provisioned. We need those ids in our local environment files for the SPA and Serverless.
 
-Using the Terraform `outputs`, generate a `.env.development.local` file for the SPA:
+Using the Terraform `outputs`, generate a `.env.development.local` file for the SPA:  
+(The the command below in the `/terraform` folder)
 ```bash
 terraform output | grep issuer | sed -e "s/issuer/VUE_APP_ISSUER/g" > spa.env.development.local \
 && terraform output | grep client_id | sed -e "s/client_id/VUE_APP_CLIENT_ID/g" >> spa.env.development.local \
@@ -78,7 +87,8 @@ terraform output | grep issuer | sed -e "s/issuer/VUE_APP_ISSUER/g" > spa.env.de
 ```
 > The above script generates the `.env.development.local` file in the `spa` folder. Examine its contents and make any changes or fixes if necessary.
 
-Next, generate a `.env.json` file for Serverless:
+Next, generate a `.env.json` file for Serverless:  
+(The the command below in the `/terraform` folder)
 ```bash
 touch serverless.env.json \
 && echo "{" > serverless.env.json \
@@ -126,19 +136,19 @@ npm run serve
 > The SPA and the resource server are now both up. Open up your browser to `http://localhost:8080` to use the demo
 
 # Stripe Integration
-An e-commerce site demo isn't complete without billing integration. And one of the easist payment form integrations is [Stripe Checkout](https://stripe.com/docs/payments/checkout).  
+An e-commerce site demo isn't complete without billing integration. And one of the easiest payment form integrations is [Stripe Checkout](https://stripe.com/docs/payments/checkout).  
 Here's our basic implementation:
 
-1. At the end of the [`subscribe.js`](/serverless/subscribe.js) Lambda function, we `POST` a [Stripe Checkout session](https://stripe.com/docs/api/checkout/sessions).
+1. At the end of the [subscribe.js](/serverless/src/subscribe.js) Lambda function, we `POST` a [Stripe Checkout session](https://stripe.com/docs/api/checkout/sessions).
     * When initiating the Checkout session, we provide the Stripe API with the mandatory `success_url` and `cancel_url`. 
-    * Also realize that prior to this, we've already created the user object in Okta. Thus, we can also provide the Stripe Session API the `client_reference_id`, setting it equal to the Okta user id. __This part is CRITICAL because we're going to use it later in the webhook__.
+    * Also realize that prior to this, we've already created the user object in Okta. Thus, we also provide the Stripe Session API the `client_reference_id`, setting it equal to the Okta user id. __This part is CRITICAL because we're going to use it later in the webhook__.
 2. The SPA uses the above session id to redirect to the Stripe hosted checkout page. 
 3. Upon checkout completion, Stripe redirects back to the SPA at `success_url`.
-4. Stripe also fires off the `checkout.session.completed` event to our [webhook](/serverless/stripe.js) Lambda function.
+4. Stripe also fires off the `checkout.session.completed` event to our [stripe.js](/serverless/src/stripe.js) (the webhook) Lambda function.
     * The webhook updates the Okta user identified by `client_reference_id` and sets the custom profile attribute `stripeCustomerId` to the customer id found in the payload of the event.
-5. Meanwhile, the browser has redirected back to the SPA component at the `success_url` url. Javascrip on this page "polls" Okta by requesting new access and id tokens from Okta. 
+5. Meanwhile, the browser redirects back to a SPA component at the `success_url` url. Javascript on this page "polls" Okta by constantly requesting new set of id_token and access_tokens from Okta until it finds what it needs in the tokens:
     * We configured Okta to return the `stripeCustomerId` claim in the id and access tokens. 
-    * What the spa is polling for is the above claim to show up in the tokens. If the webhook has done it's job, the cliam should be populated. And when it does, the process is complete.
+    * If the webhook has done it's job, the `stripeCustomerId` cliam should be populated in the tokens. And when it does, the SPA stops polling, updates the user-context and returns to the home page.
 
 ## Setup
 
@@ -153,4 +163,6 @@ Here's our basic implementation:
   | --- | ----- |
   | STRIPE_SECRET_KEY |`<replace-with-your-secret-key>`. Get the value from your [Stripe developer dashboard](https://stripe.com/docs/development/quickstart#api-keys) |
   | STRIPE_PRICE_ID | Setup a product in your [Stripe developer dashboard](https://dashboard.stripe.com/products) and get its `API id` |
-  | STRIPE_WEBHOOK_SECRET | The CLI printed a webhook secret key to the console when you started the `stripe listen command` |
+  | STRIPE_WEBHOOK_SECRET | The CLI printed a webhook secret key to the console when you started the `stripe listen command` in the previous step |
+
+* __When presented with the Stripe Checkout page, use the test credit card number `4242424242424242`. Enter any future expiration date and CVC.__
