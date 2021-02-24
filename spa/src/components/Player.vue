@@ -160,10 +160,7 @@ export default {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            Authorization: "Bearer " + access_token,
-            MockSubdomain: appConfig.isRunningLocal
-              ? appConfig.mock_subdomain
-              : "none",
+            Authorization: "Bearer " + access_token
           },
         })
           .then((res) => {

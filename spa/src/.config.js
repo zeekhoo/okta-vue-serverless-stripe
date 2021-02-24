@@ -14,6 +14,5 @@ export default {
 	customer_group_id: process.env.VUE_APP_CUSTOMER_GROUP_ID,
   client2_id: process.env.VUE_APP_CLIENT2_ID,
   stripe_publishable_key: process.env.VUE_APP_STRIPE_PUBLISHABLE_KEY,  
-	bodblog_domain: "unidemo.live",
-	mock_subdomain: process.env.VUE_APP_MOCK
+	bodblog_domain: "unidemo.live"
 }

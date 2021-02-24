@@ -267,9 +267,6 @@ export default {
             password: this.password,
             goals: this.goals,
           };
-          if (this.appConfig.isRunningLocal) {
-            body.mocksubdomain = this.appConfig.mock_subdomain;
-          }
           if (!this.user) {
             body.name = body.firstName + " " + body.lastName;
             const res = await axios({

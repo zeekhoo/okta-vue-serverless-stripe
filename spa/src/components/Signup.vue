@@ -115,9 +115,6 @@ export default {
               name: this.name,
               username: this.email
           }
-          if (this.appConfig.isRunningLocal) {
-            authnBody.mocksubdomain = this.appConfig.mock_subdomain
-          }
           axios({
             method: 'post',
             url: this.appConfig.bod_api + '/bod/api/signup',

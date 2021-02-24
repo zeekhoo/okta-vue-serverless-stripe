@@ -133,7 +133,15 @@ then compile and serve
 ```
 npm run serve
 ```
-> The SPA and the resource server are now both up. Open up your browser to `http://localhost:8080` to use the demo
+
+
+The SPA and the resource server are now both up. Open up your browser to `http://localhost:8080` to use the demo
+
+## Social Auth
+The demo app provides a "Signin with Facebook" example but this needs to be configured in Okta first:
+* See the [add Facebook](https://developer.okta.com/docs/guides/add-an-external-idp/facebook/create-an-app-at-idp/) instructions on how to configure Facebook as an external identity provider to Okta. 
+* Obtain the "idp id" after configuration is complete
+* Add `VUE_APP_FB_ID=<idp id>` to the SPA's `.env.development.local` file.
 
 # Stripe Integration
 An e-commerce site demo isn't complete without billing integration. And one of the easiest payment form integrations is [Stripe Checkout](https://stripe.com/docs/payments/checkout).  

@@ -63,6 +63,9 @@ export default {
             if (self.counter < 3) {
               // poll for changes at most 3 times. If longer, the webhook must have failed.
               self.pollStatus(scp);
+            } else {
+              // the webhook has failed. Return to home page
+              window.location.href = '/';
             }
           }
         } catch(e) {
